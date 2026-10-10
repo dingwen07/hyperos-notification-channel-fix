@@ -46,7 +46,9 @@ internal class SettingsAutomation(context: Context,private val cancelled: () -> 
             checkCancelled()
             val page=ui.rootInActiveWindow
             if(page?.packageName?.toString()=="com.android.settings") {
-                val found=listOf("com.android.settings:id/action_bar_title_expand","com.android.settings:id/action_bar_title")
+                val found=listOf("com.android.settings:id/action_bar_title_expand","com.android.settings:id/action_bar_title",
+                    // HyperOS 4 uses a medium-sized action-bar heading.
+                    "com.android.settings:id/action_bar_title_medium")
                     .flatMap { page.findAccessibilityNodeInfosByViewId(it) }.any { XiaomiLabels.normalize(it.text)==settingsTitle }
                 if(found)return
             }

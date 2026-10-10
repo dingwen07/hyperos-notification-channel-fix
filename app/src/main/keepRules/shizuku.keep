@@ -1,0 +1,5 @@
+# Shizuku loads the class supplied by ComponentName and calls this constructor reflectively.
+# The class literal and stable service tag allow its name to be obfuscated safely.
+-keep,allowoptimization,allowobfuscation class net.extrawdw.apps.miuisucks.notificationchannel.ChannelService {
+    public <init>(android.content.Context);
+}

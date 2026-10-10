@@ -3,6 +3,7 @@ package net.extrawdw.apps.miuisucks.notificationchannel
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -45,6 +46,10 @@ class MainActivity : ComponentActivity() {
                 },
                 select = { state.selected = it },
                 back = { state.plans = emptyList() },
+                isSilentMode = {
+                    // HyperOS silent mode can report VIBRATE when vibration is enabled.
+                    getSystemService(AudioManager::class.java).ringerMode != AudioManager.RINGER_MODE_NORMAL
+                },
                 start = {
                     if (Build.VERSION.SDK_INT >= 33 &&
                         checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED

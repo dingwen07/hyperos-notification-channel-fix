@@ -59,6 +59,7 @@ internal data class RepairActions(
     val back: () -> Unit = {},
     val start: () -> Unit = {},
     val openGlobalLockscreen: () -> Unit = {},
+    val isSilentMode: () -> Boolean = { false },
 )
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -67,6 +68,7 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
     var query by rememberSaveable { mutableStateOf("") }
     var showSystem by rememberSaveable { mutableStateOf(false) }
     var confirm by rememberSaveable { mutableStateOf(false) }
+    var silentWarning by rememberSaveable { mutableStateOf(false) }
     var showDetails by rememberSaveable { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val visibleApps = remember(state.apps, query, showSystem) {
@@ -170,7 +172,8 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
                 if (plans.isNotEmpty()) {
                     item(key = "review_actions", span = { GridItemSpan(maxLineSpan) }) {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = { confirm = true }, enabled = !state.working && !state.recovery && state.connected) {
+                            Button(onClick = { silentWarning = actions.isSilentMode(); confirm = true },
+                                enabled = !state.working && !state.recovery && state.connected) {
                                 Text(stringResource(R.string.repair))
                             }
                             TextButton(onClick = actions.back, enabled = !state.working) { Text(stringResource(R.string.back)) }
@@ -253,12 +256,22 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
         AlertDialog(
             onDismissRequest = { confirm = false },
             title = { Text(stringResource(R.string.confirm_title)) },
-            text = { Text(stringResource(R.string.confirm_body), Modifier.verticalScroll(rememberScrollState())) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(stringResource(R.string.confirm_body))
+                    if (silentWarning) Text(stringResource(R.string.silent_mode_body), color = MaterialTheme.colorScheme.error)
+                }
+            },
             confirmButton = {
                 TextButton(
-                    onClick = { confirm = false; actions.start() },
+                    onClick = {
+                        // If silent mode changed while the dialog was open, show the warning
+                        // before accepting a start that has not acknowledged it.
+                        if (actions.isSilentMode() && !silentWarning) silentWarning = true
+                        else { confirm = false; actions.start() }
+                    },
                     enabled = !state.working && !state.recovery && state.connected,
-                ) { Text(stringResource(R.string.repair)) }
+                ) { Text(stringResource(if (silentWarning) R.string.start_anyway else R.string.repair)) }
             },
             dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.dismiss)) } },
         )

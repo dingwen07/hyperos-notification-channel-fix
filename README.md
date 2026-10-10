@@ -14,7 +14,7 @@ The interface uses Kotlin, Jetpack Compose, and Material 3. The UI and Settings 
 4. Start repair and allow the progress notification. Keep the phone unlocked and avoid interacting with Settings while it runs.
 5. The app returns automatically after completion, an error, or Stop, showing the result after channel cleanup. If Shizuku disconnects and Android blocks the return, a result notification remains available to reopen the app. The ongoing notification also provides a Stop action.
 
-Xiaomi's sound picker may refuse to apply a sound while silent mode is enabled without Bluetooth headphones. Disable silent mode before a repair that needs sound changes. The app does not change volume, silent mode, Do Not Disturb, or global lock-screen privacy.
+Xiaomi's sound picker may refuse to apply a sound while silent mode is enabled without Bluetooth headphones. When the phone is in silent or vibrate mode, the repair confirmation includes a highlighted warning and a **Start anyway** button. It checks only ringer mode, without probing Bluetooth audio. Disable silent mode before a repair that needs sound changes. The app does not change volume, silent mode, Do Not Disturb, or global lock-screen privacy.
 
 If an operation is interrupted and restoration cannot be verified, the app retains a private recovery journal. Reconnect Shizuku and use the recovery button before continuing. Recovery restores the saved Android fields for that channel; completed Xiaomi changes remain. Review any manual channel changes made since the interruption before using recovery.
 

@@ -1,4 +1,7 @@
-plugins { id("com.android.application"); id("org.jetbrains.kotlin.plugin.compose") }
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+}
 android {
     namespace = "net.extrawdw.apps.miuisucks.notificationchannel.testapp"
     compileSdk { version = release(37) { minorApiLevel = 1 } }
@@ -16,7 +19,7 @@ android {
     buildFeatures { compose = true }
 }
 dependencies {
-    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.activity.compose)
 }
