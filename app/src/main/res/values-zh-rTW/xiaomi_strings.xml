@@ -1,0 +1,18 @@
+<resources>
+    <!-- Extracted from Xiaomi 15 OS3.0.307.0: Settings, notification center, Theme Manager. -->
+    <string name="matching_locale_tag">zh-Hant</string>
+    <string name="allow_float">懸浮通知</string>
+    <string name="ringtone">聲音</string>
+    <string name="vibrate">震動</string>
+    <string name="visibility_override">在鎖定螢幕上</string>
+    <string name="allow_keyguard">鎖定螢幕通知</string>
+    <string name="allow_sound">發聲</string>
+    <string name="setting_badge">桌面角標</string>
+    <string name="lockscreen_show">顯示通知及其內容</string>
+    <string name="lockscreen_hide">顯示通知，但隱藏內容</string>
+    <string name="lockscreen_none">完全不顯示通知</string>
+    <string name="sound_default_title">系統通知鈴聲</string>
+    <string name="sound_default_prefix">系統通知鈴聲（</string>
+    <string name="sound_none">無鈴聲</string>
+    <string name="sound_apply">套用</string>
+</resources>

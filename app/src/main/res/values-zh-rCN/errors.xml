@@ -1,0 +1,32 @@
+<resources>
+    <string name="error_command_timeout">系统操作超时。</string>
+    <string name="error_owner_user">目前仅支持 Android 主用户。</string>
+    <string name="error_channel_missing">渠道已不存在，请重新扫描。</string>
+    <string name="error_package_changed">应用已重新安装或发生变化，请重新扫描。</string>
+    <string name="error_snapshot_size">此应用的渠道过多，超出单次修复范围。</string>
+    <string name="error_snapshot_build">恢复快照来自不同的 Android 系统版本。</string>
+    <string name="error_restore">无法验证 Android 设置恢复结果，请先执行恢复。</string>
+    <string name="error_unexpected_page">当前页面已变化，为避免操作其他页面，修复已停止。</string>
+    <string name="error_page_timeout">等待设置页面超时：%1$s</string>
+    <string name="error_page_title">设置页面标题与所选应用或渠道不匹配。</string>
+    <string name="error_ambiguous_control">找到多个同名控件：%1$s</string>
+    <string name="error_missing_control">找不到设置控件：%1$s</string>
+    <string name="error_disabled_control">设置控件已禁用或不可操作。</string>
+    <string name="error_stale_control">设置控件在操作前已发生变化。</string>
+    <string name="error_click">设置控件未接受操作。</string>
+    <string name="error_not_switch">未找到预期的开关：%1$s</string>
+    <string name="error_switch_not_saved">开关状态未保存：%1$s</string>
+    <string name="error_lock_option">无法读取锁屏选项。</string>
+    <string name="error_lock_not_saved">锁屏选项未保存。</string>
+    <string name="error_back">无法从设置页面返回。</string>
+    <string name="error_policy_format">不支持此 HyperOS 通知策略格式，未执行修复。</string>
+    <string name="error_channel_changed">渠道在扫描后已被修改，请重新扫描。</string>
+    <string name="error_verify_popup">Xiaomi 悬浮通知权限验证失败。</string>
+    <string name="error_verify_sound">Xiaomi 声音权限验证失败。</string>
+    <string name="error_verify_vibration">Xiaomi 振动权限验证失败。</string>
+    <string name="error_verify_lockscreen">Xiaomi 锁屏权限验证失败。</string>
+    <string name="error_notification_permission">请允许通知，以便随时查看修复进度并停止操作。</string>
+    <string name="error_global_lockscreen">修复前，请在 Xiaomi「锁屏通知 → 显示规则」中选择「显示通知内容」。其他全局选项会隐藏修复所需的渠道选项。修复后可改回你偏好的全局隐私设置。</string>
+    <string name="error_global_lockscreen_read">无法读取全局锁屏通知设置，修复已停止。</string>
+    <string name="open_global_lockscreen">打开 Xiaomi 锁屏通知设置</string>
+</resources>

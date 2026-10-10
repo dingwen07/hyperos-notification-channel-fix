@@ -1,0 +1,32 @@
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+    <string name="error_command_timeout">System operation timed out.</string>
+    <string name="error_owner_user">Only the owner Android user is supported.</string>
+    <string name="error_channel_missing">The channel no longer exists. Scan again.</string>
+    <string name="error_package_changed">The app was reinstalled or changed. Scan again.</string>
+    <string name="error_snapshot_size">This app has too many channels for one repair transaction.</string>
+    <string name="error_snapshot_build">The recovery snapshot belongs to a different Android build.</string>
+    <string name="error_restore">Could not verify restored Android settings. Use recovery before continuing.</string>
+    <string name="error_unexpected_page">The active screen changed. Repair stopped to avoid operating another page.</string>
+    <string name="error_page_timeout">Timed out waiting for the Settings page: %1$s</string>
+    <string name="error_page_title">The Settings title did not match the selected app or channel.</string>
+    <string name="error_ambiguous_control">More than one matching control was found: %1$s</string>
+    <string name="error_missing_control">Could not find the Settings control: %1$s</string>
+    <string name="error_disabled_control">The Settings control is disabled or unavailable.</string>
+    <string name="error_stale_control">The Settings control changed before it could be operated.</string>
+    <string name="error_click">The Settings control did not accept the action.</string>
+    <string name="error_not_switch">The expected switch was not found: %1$s</string>
+    <string name="error_switch_not_saved">The switch state was not saved: %1$s</string>
+    <string name="error_lock_option">Could not read the lock-screen option.</string>
+    <string name="error_lock_not_saved">The lock-screen option was not saved.</string>
+    <string name="error_back">Could not return from the Settings page.</string>
+    <string name="error_policy_format">This HyperOS notification policy format is not supported.</string>
+    <string name="error_channel_changed">The channel changed after scanning. Scan again.</string>
+    <string name="error_verify_popup">Xiaomi popup permission could not be verified.</string>
+    <string name="error_verify_sound">Xiaomi sound permission could not be verified.</string>
+    <string name="error_verify_vibration">Xiaomi vibration permission could not be verified.</string>
+    <string name="error_verify_lockscreen">Xiaomi lock-screen permission could not be verified.</string>
+    <string name="error_notification_permission">Allow notifications so the repair progress and Stop action remain accessible.</string>
+    <string name="error_global_lockscreen">Before repair, open Xiaomi Lock-screen notifications → Display rules and select Show notification content. Other global choices hide channel options required by the repair. You can restore your preferred global privacy setting afterward.</string>
+    <string name="error_global_lockscreen_read">Could not read the global lock-screen notification settings. Repair has stopped.</string>
+    <string name="open_global_lockscreen">Open Xiaomi lock-screen settings</string>
+</resources>

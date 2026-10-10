@@ -1,0 +1,17 @@
+<resources>
+    <string name="matching_locale_tag">zh-Hans</string>
+    <string name="allow_float">悬浮通知</string>
+    <string name="ringtone">声音</string>
+    <string name="vibrate">振动</string>
+    <string name="visibility_override">在锁定屏幕上</string>
+    <string name="allow_keyguard">锁屏通知</string>
+    <string name="allow_sound">发声</string>
+    <string name="setting_badge">桌面角标</string>
+    <string name="lockscreen_show">显示通知及其内容</string>
+    <string name="lockscreen_hide">显示通知，但隐藏内容</string>
+    <string name="lockscreen_none">完全不显示通知</string>
+    <string name="sound_default_title">系统通知铃声</string>
+    <string name="sound_default_prefix">系统通知铃声（</string>
+    <string name="sound_none">无铃声</string>
+    <string name="sound_apply">应用</string>
+</resources>

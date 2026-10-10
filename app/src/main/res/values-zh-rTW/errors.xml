@@ -1,0 +1,32 @@
+<resources>
+    <string name="error_command_timeout">系統操作逾時。</string>
+    <string name="error_owner_user">目前僅支援 Android 主要使用者。</string>
+    <string name="error_channel_missing">通知管道已不存在，請重新掃描。</string>
+    <string name="error_package_changed">應用程式已重新安裝或發生變更，請重新掃描。</string>
+    <string name="error_snapshot_size">此應用程式的通知管道過多，超出單次修復範圍。</string>
+    <string name="error_snapshot_build">恢復快照來自不同的 Android 系統版本。</string>
+    <string name="error_restore">無法驗證 Android 設定恢復結果，請先執行恢復。</string>
+    <string name="error_unexpected_page">目前頁面已變更，為避免操作其他頁面，修復已停止。</string>
+    <string name="error_page_timeout">等待設定頁面逾時：%1$s</string>
+    <string name="error_page_title">設定頁面標題與所選應用程式或通知管道不符。</string>
+    <string name="error_ambiguous_control">找到多個同名控制項：%1$s</string>
+    <string name="error_missing_control">找不到設定控制項：%1$s</string>
+    <string name="error_disabled_control">設定控制項已停用或無法操作。</string>
+    <string name="error_stale_control">設定控制項在操作前已發生變更。</string>
+    <string name="error_click">設定控制項未接受操作。</string>
+    <string name="error_not_switch">未找到預期的開關：%1$s</string>
+    <string name="error_switch_not_saved">開關狀態未儲存：%1$s</string>
+    <string name="error_lock_option">無法讀取鎖定畫面選項。</string>
+    <string name="error_lock_not_saved">鎖定畫面選項未儲存。</string>
+    <string name="error_back">無法從設定頁面返回。</string>
+    <string name="error_policy_format">不支援此 HyperOS 通知原則格式，未執行修復。</string>
+    <string name="error_channel_changed">通知管道在掃描後已被修改，請重新掃描。</string>
+    <string name="error_verify_popup">Xiaomi 浮動通知權限驗證失敗。</string>
+    <string name="error_verify_sound">Xiaomi 音效權限驗證失敗。</string>
+    <string name="error_verify_vibration">Xiaomi 震動權限驗證失敗。</string>
+    <string name="error_verify_lockscreen">Xiaomi 鎖定畫面權限驗證失敗。</string>
+    <string name="error_notification_permission">請允許通知，以便隨時查看修復進度並停止操作。</string>
+    <string name="error_global_lockscreen">修復前，請在 Xiaomi「鎖定畫面通知 → 顯示規則」中選擇「顯示通知內容」。其他全域選項會隱藏修復所需的通知管道選項。修復後可改回你偏好的全域隱私設定。</string>
+    <string name="error_global_lockscreen_read">無法讀取全域鎖定畫面通知設定，修復已停止。</string>
+    <string name="open_global_lockscreen">開啟 Xiaomi 鎖定畫面通知設定</string>
+</resources>

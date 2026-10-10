@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="18 18 72 72" role="img" aria-labelledby="title desc">
+  <title id="title">Channel Repair</title>
+  <desc id="desc">A white rounded notification bell with a checkmark cutout on an indigo tile.</desc>
+  <rect x="18" y="18" width="72" height="72" rx="20" fill="#5260CC"/>
+  <g transform="translate(20.4 19) scale(1.4)">
+    <path fill="#FFFFFF" fill-rule="evenodd" d="M24,4 C22.343,4 21,5.343 21,7 L21,8.325 C14.674,9.7 10,15.31 10,22 L10,29 C10,30.326 9.473,31.598 8.536,32.536 L6.586,34.486 C5.326,35.746 6.218,37.9 8,37.9 L40,37.9 C41.782,37.9 42.674,35.746 41.414,34.486 L39.464,32.536 C38.527,31.598 38,30.326 38,29 L38,22 C38,15.31 33.326,9.7 27,8.325 L27,7 C27,5.343 25.657,4 24,4 Z M15.586,24.914 L20.586,29.914 A2,2 0,0 0,23.414,29.914 L32.914,20.414 A2,2 0,0 0,30.086,17.586 L22,25.672 L18.414,22.086 A2,2 0,0 0,15.586,24.914 Z M19,41 L29,41 C29,43.761 26.761,46 24,46 C21.239,46 19,43.761 19,41 Z"/>
+  </g>
+</svg>

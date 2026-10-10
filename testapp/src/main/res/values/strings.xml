@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">渠道修复测试</string>
+    <string name="intro">此应用只创建测试渠道。清除应用数据后可重新创建。修复前后分别发送通知进行比较。</string>
+    <string name="post">发送：%1$s</string>
+    <string name="notification_title">渠道测试：%1$s</string>
+    <string name="notification_text">检查悬浮、声音、振动和锁屏显示。请注意勿扰模式和系统音量。</string>
+    <string name="high_custom">高重要性 · 自定义声音 · 振动</string>
+    <string name="high_default">高重要性 · 默认声音</string>
+    <string name="high_silent">高重要性 · 无声</string>
+    <string name="default_custom">默认重要性 · 自定义声音</string>
+    <string name="default_vibration">默认重要性 · 仅振动</string>
+    <string name="low_custom">低重要性 · 保留声音与振动字段</string>
+    <string name="minimum">最低重要性 · 保留声音字段</string>
+    <string name="blocked">已禁用渠道</string>
+    <string name="secret">高重要性 · 锁屏隐藏通知</string>
+    <string name="private_channel">高重要性 · 锁屏隐藏内容</string>
+    <string name="unspecified">默认重要性 · 跟随全局锁屏设置</string>
+    <string name="no_badge">高重要性 · 无角标</string>
+</resources>

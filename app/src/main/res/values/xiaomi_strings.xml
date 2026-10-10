@@ -1,0 +1,18 @@
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- Empty defaults: XiaomiLabels rejects unsupported locales before use. -->
+    <string name="matching_locale_tag">unsupported</string>
+    <string name="allow_float"></string>
+    <string name="ringtone"></string>
+    <string name="vibrate"></string>
+    <string name="visibility_override"></string>
+    <string name="allow_keyguard"></string>
+    <string name="allow_sound"></string>
+    <string name="setting_badge"></string>
+    <string name="lockscreen_show"></string>
+    <string name="lockscreen_hide"></string>
+    <string name="lockscreen_none"></string>
+    <string name="sound_default_title"></string>
+    <string name="sound_default_prefix"></string>
+    <string name="sound_none"></string>
+    <string name="sound_apply"></string>
+</resources>

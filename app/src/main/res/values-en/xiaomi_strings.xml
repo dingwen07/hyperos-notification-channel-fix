@@ -1,0 +1,18 @@
+<resources>
+    <!-- Extracted from Xiaomi 15 OS3.0.307.0: Settings, notification center, Theme Manager. -->
+    <string name="matching_locale_tag">en</string>
+    <string name="allow_float">Floating notifications</string>
+    <string name="ringtone">Sound</string>
+    <string name="vibrate">Vibration</string>
+    <string name="visibility_override">On the Lock screen</string>
+    <string name="allow_keyguard">Lock screen notifications</string>
+    <string name="allow_sound">Sound</string>
+    <string name="setting_badge">Notification badges</string>
+    <string name="lockscreen_show">Show all notifications and their contents</string>
+    <string name="lockscreen_hide">Show all notifications but hide contents</string>
+    <string name="lockscreen_none">Don\'t show notification at all</string>
+    <string name="sound_default_title">Notifications</string>
+    <string name="sound_default_prefix">Notification sound (</string>
+    <string name="sound_none">None</string>
+    <string name="sound_apply">Apply</string>
+</resources>
