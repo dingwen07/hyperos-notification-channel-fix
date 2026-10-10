@@ -1,5 +1,6 @@
 package net.extrawdw.apps.miuisucks.notificationchannel
 
+import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
 import android.content.pm.ApplicationInfo
@@ -8,12 +9,13 @@ import android.util.Base64
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Hidden framework interfaces stay in the shell UserService. */
+/** Hidden framework interfaces stay in the shell UserService; public APIs cannot edit other apps' channels. */
+@SuppressLint("PrivateApi")
 internal class NotificationAccess(val context: Context) {
+    init { check(android.os.Process.myUid() in setOf(0,2000)) { "Shizuku shell or root required" } }
     private val type=Class.forName("android.app.INotificationManager")
     private val service: Any
     init {
-        check(android.os.Process.myUid() in setOf(0,2000)) { "Shizuku shell or root required" }
         if(ActivityManager::class.java.getMethod("getCurrentUser").invoke(null)!=0) fail(R.string.error_owner_user)
         val binder=Class.forName("android.os.ServiceManager").getMethod("getService",String::class.java).invoke(null,"notification")
         service=Class.forName("android.app.INotificationManager\$Stub").getMethod("asInterface",IBinder::class.java).invoke(null,binder)!!
@@ -59,6 +61,8 @@ internal class NotificationAccess(val context: Context) {
         if(result.toString().length>300_000) fail(R.string.error_snapshot_size)
         return result
     }
+    // ChannelService clears the caller identity: shell/root is exempt from package visibility filtering.
+    @SuppressLint("QueryPermissionsNeeded")
     fun apps(): JSONArray {
         val result=JSONArray()
         context.packageManager.getInstalledApplications(0).forEach { app ->

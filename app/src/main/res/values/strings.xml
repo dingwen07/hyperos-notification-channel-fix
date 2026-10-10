@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
-    <string name="app_name">Channel Repair</string>
+    <string name="app_name">HyperOS Notification Channel Fix</string>
     <string name="intro">Restore HyperOS popups, sound, vibration and lock-screen display from Android’s saved notification channel settings.</string>
     <string name="connect">Connect Shizuku</string>
     <string name="scan">Scan apps</string>

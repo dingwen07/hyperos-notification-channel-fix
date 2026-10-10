@@ -1,5 +1,6 @@
 package net.extrawdw.apps.miuisucks.notificationchannel
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -20,6 +21,8 @@ internal class XiaomiLabels(app: Context, systemLocale: Locale=Resources.getSyst
         val vendor=settings.createConfigurationContext(Configuration(settings.resources.configuration).apply {
             setLocales(LocaleList(systemLocale))
         }).resources
+        // This belongs to the installed Xiaomi Settings APK; its resource ID cannot be known at build time.
+        @SuppressLint("DiscouragedApi")
         val xmlId=vendor.getIdentifier("miui_channel_notification_settings","xml","com.android.settings")
         if(xmlId!=0) vendor.getXml(xmlId).use { xml ->
             while(xml.next()!=XmlPullParser.END_DOCUMENT) {

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">通知管道修復</string>
+    <string name="app_name">HyperOS 通知管道修復</string>
     <string name="intro">依照 Android 儲存的通知管道設定，恢復 HyperOS 的浮動通知、音效、震動和鎖定畫面顯示。</string>
     <string name="connect">連線至 Shizuku</string>
     <string name="scan">掃描應用程式</string>

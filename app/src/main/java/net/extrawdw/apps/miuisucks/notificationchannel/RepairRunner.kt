@@ -6,9 +6,14 @@ import android.os.IBinder
 import org.json.JSONObject
 
 class RepairRunner : Service() {
+    private var latestStartId=0
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == "stop") { RepairState.stop(); return START_NOT_STICKY }
+        latestStartId=startId
+        if (intent?.action == "stop") {
+            if(RepairState.running) RepairState.stop() else stopSelf(startId)
+            return START_NOT_STICKY
+        }
         if (RepairState.running) return START_NOT_STICKY
         val bridge=RepairState.bridge ?: run { stopSelf(); return START_NOT_STICKY }
         val plans=RepairState.plans.toList()
@@ -73,7 +78,8 @@ class RepairRunner : Service() {
                             .setContentTitle(getString(R.string.app_name)).setContentText(getString(R.string.notification_result))
                             .setContentIntent(open).setAutoCancel(true).build())
                     }
-                    stopSelf(startId)
+                    // Stop/duplicate intents also start this service. Cleanup must consume their ID.
+                    stopSelf(latestStartId)
                 }
             }
         }

@@ -2,6 +2,8 @@
 
 Android app that uses Shizuku to read Android notification channels and operate Xiaomi Settings to restore notification popups, sound, vibration, and lock-screen display.
 
+Installation requires Xiaomi's `com.miui.system` shared library, enforced by the APK manifest.
+
 The interface uses Kotlin, Jetpack Compose, and Material 3. The UI and Settings matching resources include English, Simplified Chinese, and Traditional Chinese. App language and system Settings language are resolved independently by Android. Matching labels were extracted from the installed Xiaomi packages; unsupported system languages produce an explicit error.
 
 ## Use
@@ -53,6 +55,8 @@ Requires JDK 21, Android SDK platform 37.1, and the included Gradle wrapper. Set
 
 Compile SDK is Android 17.1 (37.1); target SDK is 37 because Android target SDK declarations do not accept a minor API level. Minimum SDK is 30, but compatibility with other ROMs is not implied.
 
+After changing AIDL or Shizuku shell service code, use a clean build and a full Package Manager reinstall so the shell process loads the current classes.
+
 The `testapp` target creates 12 disposable channels covering importance 0–4, custom/default/no sound, vibration, channel badges, and lock-screen privacy. Launch it after clearing its data to recreate the channels. Android ignores app-created lock-screen overrides; the **debug-only** `FixtureShell` entry point seeds PRIVATE and SECRET through shell Binder calls. It accepts only its fixed `.testapp` package. HyperOS forbids ordinary apps from creating `mipush|` channels, so MiPush coverage uses policy tests, a direct service skip test, and a sample preview card.
 
 After installing both apps and the test APK, grant Shizuku to the main app and notification permission to the fixture. For an explicitly selected test device:
@@ -60,7 +64,7 @@ After installing both apps and the test APK, grant Shizuku to the main app and n
 ```powershell
 adb -s DEVICE push app/build/outputs/apk/debug/app-debug.apk /data/local/tmp/channel-repair-debug.apk
 adb -s DEVICE shell 'CLASSPATH=/data/local/tmp/channel-repair-debug.apk app_process /system/bin net.extrawdw.apps.miuisucks.notificationchannel.FixtureShell seed-privacy'
-adb -s DEVICE shell am instrument -w -e repairFixture true -e class net.extrawdw.apps.miuisucks.notificationchannel.FixtureRepairTest,net.extrawdw.apps.miuisucks.notificationchannel.LocaleResourcesTest net.extrawdw.apps.miuisucks.notificationchannel.test/androidx.test.runner.AndroidJUnitRunner
+adb -s DEVICE shell am instrument -w -e repairFixture true -e class net.extrawdw.apps.miuisucks.notificationchannel.FixtureRepairTest net.extrawdw.apps.miuisucks.notificationchannel.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-Device repair tests are opt-in and restricted to the fixture. They check restored Android alert fields, unchanged badges/lights/DND/group/conversation settings, effective required Xiaomi permissions, skipped-channel guards, and rejection of stale snapshots. `RepairReturnTest` checks return to the app with the correct result after success and failure. Locale tests compare matching strings against installed Xiaomi packages in all supported languages and reject unsupported languages. Unit tests cover channel policy and OEM policy parsing.
+Device repair tests are opt-in and restricted to the fixture. They check restored Android alert fields, unchanged badges/lights/DND/group/conversation settings, effective required Xiaomi permissions, skipped-channel guards, and rejection of stale snapshots. `RepairReturnTest` checks return to the app with the correct result after success and failure. Unit tests cover channel policy and OEM policy parsing.

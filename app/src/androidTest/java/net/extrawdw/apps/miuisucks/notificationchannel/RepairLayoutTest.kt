@@ -1,12 +1,10 @@
 package net.extrawdw.apps.miuisucks.notificationchannel
 
-import android.graphics.Bitmap
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -18,7 +16,6 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 /** UI-only fixtures: none of these callbacks invoke Shizuku or change notification settings. */
 class RepairLayoutTest {
@@ -53,7 +50,6 @@ class RepairLayoutTest {
         compose.waitForIdle()
         assertEquals(messages().top, mail().top, 1f)
         assertTrue(mail().left > messages().left)
-        saveScreenshot("tablet-grid")
     }
 
     @Test fun searchAndFilterSurviveRecreation() {
@@ -81,7 +77,6 @@ class RepairLayoutTest {
         }
         compose.onNodeWithText(label(R.string.cancel)).performScrollTo().assertIsDisplayed().performClick()
         compose.runOnIdle { assertTrue(stopped) }
-        saveScreenshot("narrow-large-text")
     }
 
     @Test fun wholeCardSelectsButBlockedCardCannotBeSelected() {
@@ -90,8 +85,10 @@ class RepairLayoutTest {
         compose.setContent {
             RepairTheme { RepairContent(state.copy(selected = selected), RepairActions(select = { selected = it })) }
         }
-        compose.onNode(hasText("Mail") and isToggleable()).performScrollTo().performClick().assertIsOn()
-        compose.onNode(hasText("Blocked") and isToggleable()).performScrollTo().assertIsNotEnabled()
+        compose.onNode(hasScrollToKeyAction()).performScrollToKey("app:com.example.mail")
+        compose.onNode(hasText("Mail") and isToggleable()).performClick().assertIsOn()
+        compose.onNode(hasScrollToKeyAction()).performScrollToKey("app:com.example.blocked")
+        compose.onNode(hasText("Blocked") and isToggleable()).assertIsNotEnabled()
         compose.runOnIdle { assertEquals(setOf("com.example.mail"), selected) }
     }
 
@@ -109,14 +106,6 @@ class RepairLayoutTest {
         val field = compose.onNode(hasSetTextAction()).fetchSemanticsNode().boundsInWindow
         assertTrue("Search field is covered by IME: $field, IME top=$keyboardTop", field.bottom <= keyboardTop + 1)
         compose.onNode(hasSetTextAction()).assertIsDisplayed()
-        saveScreenshot("phone-keyboard")
         compose.onNode(hasSetTextAction()).performImeAction()
-    }
-
-    private fun saveScreenshot(name: String) {
-        val directory = File(compose.activity.getExternalFilesDir(null), "layout-verification").apply { mkdirs() }
-        File(directory, "$name.png").outputStream().use {
-            compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it)
-        }
     }
 }

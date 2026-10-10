@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">通知渠道修复</string>
+    <string name="app_name">HyperOS 通知渠道修复</string>
     <string name="intro">按照 Android 保存的渠道设置，恢复 HyperOS 的悬浮通知、声音、振动和锁屏显示。</string>
     <string name="connect">连接 Shizuku</string>
     <string name="scan">扫描应用</string>

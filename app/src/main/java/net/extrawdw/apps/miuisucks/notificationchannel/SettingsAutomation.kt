@@ -1,7 +1,5 @@
 package net.extrawdw.apps.miuisucks.notificationchannel
 
-import android.accessibilityservice.AccessibilityServiceInfo
-import android.app.UiAutomation
 import android.content.Context
 import android.os.*
 import android.view.KeyEvent
@@ -10,20 +8,10 @@ import android.view.accessibility.AccessibilityNodeInfo
 /** Bounded, package-scoped node actions. No fixed coordinates or blind taps. */
 internal class SettingsAutomation(context: Context,private val cancelled: () -> Boolean) : AutoCloseable {
     val labels=XiaomiLabels(context)
-    private val thread=HandlerThread("channel-ui")
-    private val ui: UiAutomation
+    private val session=ShellUiAutomation()
+    private val ui=session.ui
     private var expectedPackage="com.android.settings"
     private var settingsTitle=""
-    init {
-        thread.start()
-        try {
-            val connection=Class.forName("android.app.UiAutomationConnection").getConstructor().newInstance()
-            ui=UiAutomation::class.java.getConstructor(Looper::class.java,Class.forName("android.app.IUiAutomationConnection"))
-                .newInstance(thread.looper,connection)
-            UiAutomation::class.java.getMethod("connect",Int::class.javaPrimitiveType).invoke(ui,UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES)
-            ui.serviceInfo=ui.serviceInfo.apply { flags=flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS }
-        } catch(e: Exception) { thread.quitSafely();throw e }
-    }
     private fun checkCancelled() { if(cancelled()) fail(R.string.stopped) }
     private fun root(): AccessibilityNodeInfo {
         checkCancelled()
@@ -112,20 +100,26 @@ internal class SettingsAutomation(context: Context,private val cancelled: () -> 
         }
         fail(R.string.error_lock_option)
     }
+    @Suppress("DEPRECATION") // isChecked is needed only on Android 11-15.
+    private fun AccessibilityNodeInfo.matchesCheckedState(desired: Boolean): Boolean =
+        if(Build.VERSION.SDK_INT>=36) {
+            // A partially checked node does not satisfy either binary setting.
+            checked==if(desired)AccessibilityNodeInfo.CHECKED_STATE_TRUE else AccessibilityNodeInfo.CHECKED_STATE_FALSE
+        } else isChecked==desired
     fun toggle(label: String,desired: Boolean) {
         val row=clickable(title(label));val box=checkable(row)?:fail(R.string.error_not_switch,label)
-        if(box.isChecked==desired)return
+        if(box.matchesCheckedState(desired))return
         click(row)
-        if(checkable(clickable(title(label)))?.isChecked!=desired)fail(R.string.error_switch_not_saved,label)
+        if(checkable(clickable(title(label)))?.matchesCheckedState(desired)!=true)fail(R.string.error_switch_not_saved,label)
     }
     fun lockscreen(visibility: Int) {
         val label=when(visibility) { -1->R.string.lockscreen_none;0->R.string.lockscreen_hide;else->R.string.lockscreen_show }
         click(title(labels.preference("visibility_override",R.string.visibility_override)))
         awaitPackage("com.miui.notification")
         val option=title(labels.text(label))
-        if(!optionState(option).isChecked)click(option)
+        if(!optionState(option).matchesCheckedState(true))click(option)
         // HyperOS intentionally makes the selected radio row non-clickable.
-        if(!optionState(title(labels.text(label))).isChecked)fail(R.string.error_lock_not_saved)
+        if(!optionState(title(labels.text(label))).matchesCheckedState(true))fail(R.string.error_lock_not_saved)
         back();awaitPackage("com.android.settings");awaitSettingsTitle()
     }
     fun sound(enabled: Boolean) {
@@ -153,7 +147,5 @@ internal class SettingsAutomation(context: Context,private val cancelled: () -> 
             !ui.injectInputEvent(KeyEvent(now,now,KeyEvent.ACTION_UP,KeyEvent.KEYCODE_BACK,0),true))fail(R.string.error_back)
         SystemClock.sleep(250)
     }
-    override fun close() {
-        try { UiAutomation::class.java.getMethod("disconnect").invoke(ui) } finally { thread.quitSafely() }
-    }
+    override fun close()=session.close()
 }

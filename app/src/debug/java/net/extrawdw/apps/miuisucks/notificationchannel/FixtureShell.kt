@@ -1,10 +1,13 @@
 package net.extrawdw.apps.miuisucks.notificationchannel
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.os.IBinder
 
 /** Debug-only shell entry point. Seeds privacy cases that an ordinary app cannot create. */
 object FixtureShell {
+    // Runs as shell only; seeding another app's channel privacy requires the hidden notification Binder.
+    @SuppressLint("PrivateApi")
     @JvmStatic fun main(args: Array<String>) {
         check(android.os.Process.myUid()==2000)
         check(args.contentEquals(arrayOf("seed-privacy")))
