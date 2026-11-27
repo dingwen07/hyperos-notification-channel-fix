@@ -1,6 +1,6 @@
 <resources>
     <!-- Extracted from Xiaomi 15 OS3.0.307.0: Settings, notification center, Theme Manager. -->
-    <string name="matching_locale_tag">en</string>
+    <string name="matching_locale_tag">@string/matching_en</string>
     <string name="allow_float">Floating notifications</string>
     <string name="ringtone">Sound</string>
     <string name="vibrate">Vibration</string>

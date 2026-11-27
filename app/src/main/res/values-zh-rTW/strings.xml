@@ -45,7 +45,7 @@
     <string name="recovered">已恢復並驗證 Android 設定，請重新掃描。</string>
     <string name="empty">找不到符合的應用程式</string>
     <string name="app_gates">正在設定應用程式層級開關和桌面標記…</string>
-    <string name="unsupported_locale">目前系統語言 %1$s 暫無相符的 ROM 字串。支援的系統語言：英語、簡體中文和繁體中文。</string>
+    <string name="unsupported_locale">目前系統語言 %1$s 暫無相符的 ROM 字串。支援的系統語言：%2$s。</string>
     <string name="select_all">選取顯示的應用程式</string>
     <string name="clear_selection">清除選取</string>
     <plurals name="selected_count">
@@ -53,7 +53,7 @@
     </plurals>
     <string name="details">技術詳細資料</string>
     <string name="operation_error">操作失敗，請檢視技術詳細資料，排除問題後重新掃描。</string>
-    <string name="system_language">支援的系統語言：英語、簡體中文、繁體中文</string>
+    <string name="system_language">支援的系統語言：%1$s</string>
     <string name="notification_result">修復已結束，點選檢視結果或恢復操作說明。</string>
     <string name="work_plan">%1$s · 工作設定檔（%2$d）</string>
     <string name="dual_app_plan">%1$s · 應用程式雙開</string>

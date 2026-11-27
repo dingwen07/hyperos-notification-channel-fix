@@ -1,5 +1,5 @@
 <resources>
-    <string name="matching_locale_tag">zh-Hans</string>
+    <string name="matching_locale_tag">@string/matching_zh_hans</string>
     <string name="allow_float">悬浮通知</string>
     <string name="ringtone">声音</string>
     <string name="vibrate">振动</string>

@@ -25,6 +25,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -88,7 +89,7 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
         if(wasRunning && !state.running)appsGridState.scrollToItem(0)
         wasRunning=state.running
     }
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val systemInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout)
     val direction = LocalLayoutDirection.current
     val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
@@ -129,7 +130,10 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
                     Box(Modifier.fillMaxWidth()) {
                         Column(Modifier.widthIn(max = 760.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(stringResource(R.string.intro), style = MaterialTheme.typography.bodyLarge)
-                            Text(stringResource(R.string.system_language), style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                stringResource(R.string.system_language, LocalResources.current.supportedSystemLanguageNames()),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
                         }
                     }
                 }

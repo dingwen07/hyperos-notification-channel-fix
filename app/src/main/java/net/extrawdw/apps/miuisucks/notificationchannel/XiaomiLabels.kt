@@ -4,10 +4,20 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
+import android.icu.text.ListFormatter
+import android.icu.util.ULocale
 import android.os.LocaleList
 import androidx.core.os.LocaleListCompat
 import org.xmlpull.v1.XmlPullParser
 import java.util.Locale
+
+internal fun Resources.supportedSystemLanguageNames(): String {
+    val displayLocale = ULocale.forLocale(configuration.locales[0])
+    val names = getStringArray(R.array.matching_locale_tags).map { tag ->
+        ULocale.forLanguageTag(tag).getDisplayNameWithDialect(displayLocale)
+    }
+    return ListFormatter.getInstance(displayLocale).format(names)
+}
 
 /** Android selects the resources; its language/script matcher rejects cross-language fallback. */
 internal class XiaomiLabels(app: Context, systemLocale: Locale=Resources.getSystem().configuration.locales[0]) {

@@ -84,7 +84,7 @@ object RepairState {
         if(!result.getBoolean("ok")) {
             val args=result.optJSONArray("errorArgs")?:JSONArray()
             val messageId=result.optInt("errorRes",R.string.operation_error)
-            val message=app.getString(messageId,*(0 until args.length()).map {args.getString(it)}.toTypedArray())
+            val message = app.resources.repairErrorMessage(messageId, Array(args.length()) { args.getString(it) })
             throw RemoteOperationException(messageId,message,result.optString("detail"),result.optBoolean("recoveryRequired",true))
         }
         return result.get("data")
@@ -95,7 +95,7 @@ object RepairState {
         errorRes=(e as? RemoteOperationException)?.messageId
         status=when(e) {
             is RemoteOperationException -> e.userMessage
-            is RepairFailure -> app.getString(e.messageId,*e.arguments)
+            is RepairFailure -> app.resources.repairErrorMessage(e.messageId, e.arguments)
             else -> app.getString(R.string.operation_error)
         }
     } }

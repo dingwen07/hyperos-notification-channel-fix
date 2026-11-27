@@ -34,6 +34,23 @@ class RepairLayoutTest {
         compose.activityRule.scenario.onActivity { it.enableEdgeToEdge() }
     }
 
+    @Test fun appTitleStaysInPlaceWhileScrolling() {
+        val state = ready().copy(apps = List(100) { index ->
+            AppEntry("com.example.app$index", "App $index", 1, false, true)
+        })
+        compose.setContent { RepairTheme { RepairContent(state) } }
+
+        val title = compose.onNodeWithText(label(R.string.app_name)).assertIsDisplayed()
+        val titleTop = title.fetchSemanticsNode().boundsInRoot.top
+        val intro = compose.onNodeWithText(label(R.string.intro)).assertIsDisplayed()
+
+        compose.onNode(hasScrollToKeyAction()).performTouchInput { swipeUp() }
+
+        intro.assertIsNotDisplayed()
+        title.assertIsDisplayed()
+        assertEquals(titleTop, title.fetchSemanticsNode().boundsInRoot.top, 1f)
+    }
+
     @Test fun gridReflowsWhenWindowResizes() {
         var size by mutableStateOf(DpSize(360.dp, 800.dp))
         val state = ready()

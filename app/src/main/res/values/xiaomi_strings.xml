@@ -1,4 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="matching_en" translatable="false">en</string>
+    <string name="matching_zh_hans" translatable="false">zh-Hans</string>
+    <string name="matching_zh_hant" translatable="false">zh-Hant</string>
+    <string-array name="matching_locale_tags" translatable="false">
+        <item>@string/matching_en</item>
+        <item>@string/matching_zh_hans</item>
+        <item>@string/matching_zh_hant</item>
+    </string-array>
+
     <!-- Empty defaults: XiaomiLabels rejects unsupported locales before use. -->
     <string name="matching_locale_tag">unsupported</string>
     <string name="allow_float"></string>
