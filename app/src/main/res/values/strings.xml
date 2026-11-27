@@ -24,6 +24,9 @@
     <string name="off">Off</string>
     <string name="skip">Skipped: blocked app, group, channel, or legacy default channel</string>
     <string name="skip_mipush">Skipped: MiPush channel</string>
+    <string name="skip_fixed_option">Skip previously fixed notification channels</string>
+    <string name="rebuild_channel_history">Starting this repair clears the saved channel history for all selected apps.</string>
+    <string name="skip_fixed">Skipped: previously fixed</string>
     <string name="channel_id">Channel ID: %1$s</string>
     <string name="sound_uri">Original sound: %1$s</string>
     <string name="silent">None</string>

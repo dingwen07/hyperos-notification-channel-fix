@@ -32,14 +32,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import org.json.JSONObject
 
 internal data class RepairUiState(
     val status: String = "",
     val detail: String = "",
     val apps: List<AppEntry> = emptyList(),
     val selected: Set<String> = emptySet(),
-    val plans: List<String> = emptyList(),
+    val plans: List<RepairPlan> = emptyList(),
+    val skipFixed: Boolean = true,
     val connected: Boolean = false,
     val busy: Boolean = false,
     val running: Boolean = false,
@@ -56,6 +56,7 @@ internal data class RepairActions(
     val recover: () -> Unit = {},
     val preview: () -> Unit = {},
     val select: (Set<String>) -> Unit = {},
+    val setSkipFixed: (Boolean) -> Unit = {},
     val back: () -> Unit = {},
     val start: () -> Unit = {},
     val openGlobalLockscreen: () -> Unit = {},
@@ -77,7 +78,7 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
                 (it.name.contains(query, ignoreCase = true) || it.pkg.contains(query, ignoreCase = true))
         }
     }
-    val plans = remember(state.plans) { state.plans.map(::JSONObject) }
+    val plans = state.plans
     // Preserve each stage's scroll position when switching between selection and review.
     val appsGridState = rememberLazyGridState()
     val plansGridState = rememberLazyGridState()
@@ -170,6 +171,9 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
                     }
                 }
                 if (plans.isNotEmpty()) {
+                    item(key = "skip_fixed", span = { GridItemSpan(maxLineSpan) }) {
+                        FilterCheckbox(stringResource(R.string.skip_fixed_option), state.skipFixed, !state.working, actions.setSkipFixed)
+                    }
                     item(key = "review_actions", span = { GridItemSpan(maxLineSpan) }) {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = { silentWarning = actions.isSilentMode(); confirm = true },
@@ -180,16 +184,15 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
                         }
                     }
                     plans.forEach { plan ->
-                        val pkg = plan.getString("package")
+                        val pkg = plan.packageName
                         item(key = "package:$pkg", span = { GridItemSpan(maxLineSpan) }) {
                             Text(pkg, style = MaterialTheme.typography.titleMedium)
                         }
-                        val channels = plan.getJSONArray("channels")
                         items(
-                            count = channels.length(),
-                            key = { "channel:$pkg:${channels.getJSONObject(it).getString("id")}" },
+                            items = plan.channels,
+                            key = { "channel:$pkg:${it.id}" },
                             contentType = { "channel" },
-                        ) { index -> ChannelCard(channels.getJSONObject(index)) }
+                        ) { channel -> ChannelCard(channel, state.skipFixed) }
                     }
                 } else {
                     item(key = "search", span = { GridItemSpan(maxLineSpan) }) {
@@ -205,15 +208,7 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
                         )
                     }
                     item(key = "system_filter", span = { GridItemSpan(maxLineSpan) }) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                .toggleable(showSystem, enabled = !state.working, role = Role.Checkbox) { showSystem = it }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Checkbox(checked = showSystem, onCheckedChange = null, enabled = !state.working)
-                            Text(stringResource(R.string.show_system), Modifier.padding(start = 12.dp))
-                        }
+                        FilterCheckbox(stringResource(R.string.show_system), showSystem, !state.working) { showSystem = it }
                     }
                     item(key = "selection_actions", span = { GridItemSpan(maxLineSpan) }) {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -259,6 +254,7 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(stringResource(R.string.confirm_body))
+                    if (!state.skipFixed) Text(stringResource(R.string.rebuild_channel_history))
                     if (silentWarning) Text(stringResource(R.string.silent_mode_body), color = MaterialTheme.colorScheme.error)
                 }
             },
@@ -275,6 +271,19 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
             },
             dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.dismiss)) } },
         )
+    }
+}
+
+@Composable
+private fun FilterCheckbox(label: String, checked: Boolean, enabled: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            .toggleable(checked, enabled = enabled, role = Role.Checkbox, onValueChange = onChange)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = null, enabled = enabled)
+        Text(label, Modifier.padding(start = 12.dp))
     }
 }
 
@@ -301,9 +310,10 @@ private fun AppCard(app: AppEntry, selected: Boolean, enabled: Boolean, onSelect
 }
 
 @Composable
-private fun ChannelCard(channel: JSONObject) {
-    val eligible=channel.getBoolean("eligible")
-    val id=channel.getString("id")
+private fun ChannelCard(planned: PlannedChannel, skipFixed: Boolean) {
+    val channel = planned.data
+    val reason = planned.skipReason(skipFixed)
+    val eligible = reason == null
     OutlinedCard(
         Modifier.fillMaxWidth().semantics { if(!eligible)disabled() },
         colors=CardDefaults.outlinedCardColors(
@@ -314,10 +324,10 @@ private fun ChannelCard(channel: JSONObject) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(channel.getString("name"), style = MaterialTheme.typography.titleMedium)
             SelectionContainer {
-                Text(stringResource(R.string.channel_id,id),style=MaterialTheme.typography.bodySmall,fontFamily=FontFamily.Monospace)
+                Text(stringResource(R.string.channel_id,planned.id),style=MaterialTheme.typography.bodySmall,fontFamily=FontFamily.Monospace)
             }
-            if (!eligible) {
-                Text(stringResource(if(ChannelPolicy.isMiPush(id))R.string.skip_mipush else R.string.skip))
+            if (reason != null) {
+                Text(stringResource(reason))
             } else {
                 val on = stringResource(R.string.on)
                 val off = stringResource(R.string.off)

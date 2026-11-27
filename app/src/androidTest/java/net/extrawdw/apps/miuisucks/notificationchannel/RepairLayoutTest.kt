@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
@@ -64,6 +65,29 @@ class RepairLayoutTest {
         compose.onNodeWithText(label(R.string.show_system)).assertIsOn()
     }
 
+    @Test fun planDefaultsToSkippingFixedChannelsAndCanIncludeThemAgain() {
+        val data = JSONObject().put("id", "messages").put("name", "Messages").put("eligible", true)
+            .put("importance", 3).put("popup", false).put("sound", false).put("vibrate", true)
+            .put("lockscreen", true).put("soundUri", JSONObject.NULL)
+        val channel = PlannedChannel(data, "key", "signature", previouslyFixed = true)
+        val plan = RepairPlan("test.app", "{}", listOf(channel))
+        var state by mutableStateOf(ready().copy(plans = listOf(plan)))
+        compose.setContent {
+            RepairTheme { RepairContent(state, RepairActions(setSkipFixed = { state = state.copy(skipFixed = it) })) }
+        }
+        val grid = compose.onNode(hasScrollToKeyAction())
+        grid.performScrollToKey("skip_fixed")
+        val option = compose.onNodeWithText(label(R.string.skip_fixed_option))
+        option.assertIsOn()
+        grid.performScrollToKey("channel:test.app:messages")
+        compose.onNodeWithText(label(R.string.skip_fixed)).assertIsDisplayed()
+        grid.performScrollToKey("skip_fixed")
+        option.performClick().assertIsOff()
+        grid.performScrollToKey("channel:test.app:messages")
+        compose.onNodeWithText(label(R.string.skip_fixed)).assertDoesNotExist()
+        compose.onNodeWithText("Messages").assertIsDisplayed()
+    }
+
     @Test fun largeTextKeepsStopReachableInNarrowWindow() {
         var stopped = false
         val state = ready().copy(running = true, status = label(R.string.working))
@@ -75,6 +99,7 @@ class RepairLayoutTest {
                 RepairTheme { RepairContent(state, RepairActions(stop = { stopped = true })) }
             }
         }
+        compose.onNode(hasScrollToKeyAction()).performScrollToKey("connection")
         compose.onNodeWithText(label(R.string.cancel)).performScrollTo().assertIsDisplayed().performClick()
         compose.runOnIdle { assertTrue(stopped) }
     }

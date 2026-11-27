@@ -24,6 +24,9 @@
     <string name="off">关</string>
     <string name="skip">跳过：已禁用、分组被禁用或旧版默认渠道</string>
     <string name="skip_mipush">跳过：MiPush 渠道</string>
+    <string name="skip_fixed_option">跳过已修复的通知渠道</string>
+    <string name="rebuild_channel_history">开始修复时会清空所有已选应用的通知渠道修复记录。</string>
+    <string name="skip_fixed">跳过：此前已修复</string>
     <string name="channel_id">渠道 ID：%1$s</string>
     <string name="sound_uri">原始声音：%1$s</string>
     <string name="silent">无</string>

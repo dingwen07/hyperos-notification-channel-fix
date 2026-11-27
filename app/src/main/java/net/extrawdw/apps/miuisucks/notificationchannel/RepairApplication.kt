@@ -35,7 +35,9 @@ object RepairState {
     var errorRes by mutableStateOf<Int?>(null)
     var apps by mutableStateOf(emptyList<AppEntry>())
     var selected by mutableStateOf(emptySet<String>())
-    var plans by mutableStateOf(emptyList<String>())
+    internal val history by lazy { RepairHistory(app.getSharedPreferences("verified_channels", Application.MODE_PRIVATE)) }
+    internal var plans by mutableStateOf(emptyList<RepairPlan>())
+    var skipFixed by mutableStateOf(true)
     var recovery by mutableStateOf(false)
     @Volatile var stopRequested = false
     private var binding = false
@@ -112,8 +114,8 @@ object RepairState {
     fun preview() {
         val packages=selected.toList()
         task { service ->
-            val inspected=packages.map { (data(service.inspect(it)) as JSONObject).toString() }
-            post { plans=inspected }
+            val inspected=packages.map { history.plan(data(service.inspect(it)) as JSONObject) }
+            post { skipFixed=true; plans=inspected }
         }
     }
     fun stop() {

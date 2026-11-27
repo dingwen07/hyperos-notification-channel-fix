@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
         RepairContent(
             state = RepairUiState(
                 status = state.status, detail = state.detail, apps = state.apps,
-                selected = state.selected, plans = state.plans, connected = state.connected,
+                selected = state.selected, plans = state.plans, skipFixed = state.skipFixed, connected = state.connected,
                 busy = state.busy, running = state.running, recovery = state.recovery,
                 needsGlobalLockscreen = state.errorRes == R.string.error_global_lockscreen,
             ),
@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
                     } catch (e: Exception) { state.error(e) }
                 },
                 select = { state.selected = it },
+                setSkipFixed = { state.skipFixed = it },
                 back = { state.plans = emptyList() },
                 isSilentMode = {
                     // HyperOS silent mode can report VIBRATE when vibration is enabled.

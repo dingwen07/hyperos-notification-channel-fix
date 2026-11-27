@@ -10,7 +10,7 @@ The interface uses Kotlin, Jetpack Compose, and Material 3. The UI and Settings 
 
 1. Start Shizuku in ADB mode, open Channel Repair, and grant Shizuku access.
 2. Set Xiaomi **Lock-screen notifications → Display rules → Show notification content** before repair. Other global choices remove channel-level options needed by the automation. The app checks both underlying secure settings before preview and again before each app/channel operation. It stops with a shortcut to Xiaomi's settings when the prerequisite is unmet; it never changes global privacy itself. You can restore your preferred global privacy choice afterward.
-3. Scan apps, select the apps to repair, and review their channel plans.
+3. Scan apps, select the apps to repair, and review their channel plans. **Skip previously fixed notification channels** is on for each new plan. The app remembers each verified channel on this device, even if the run later stops. Reinstalling the target app or changing a channel’s Android importance, sound URI, vibration target or lock-screen visibility makes it eligible again. Starting a repair with skipping off clears the entire saved channel history for every selected app, including channels that no longer exist. Each newly verified channel is saved as the run proceeds. App-level switches and badges are still processed for each selected app.
 4. Start repair and allow the progress notification. Keep the phone unlocked and avoid interacting with Settings while it runs.
 5. The app returns automatically after completion, an error, or Stop, showing the result after channel cleanup. If Shizuku disconnects and Android blocks the return, a result notification remains available to reopen the app. The ongoing notification also provides a Stop action.
 

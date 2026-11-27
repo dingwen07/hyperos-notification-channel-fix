@@ -3,5 +3,5 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories { google(); mavenCentral() }
 }
-rootProject.name = "HyperOSNotificationChannelFix"
+rootProject.name = "HyperOS NotificationChannel Fix"
 include(":app", ":testapp")

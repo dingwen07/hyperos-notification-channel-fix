@@ -44,9 +44,11 @@ class RepairReturnTest {
             if(stale)channel.put("parcel",NotificationAccess.encode(
                 NotificationAccess.decode(channel.getString("parcel")).apply {importance=2}))
             snapshot.put("channels",JSONArray().put(channel))
+            val plan = RepairState.history.plan(snapshot)
             instrumentation.runOnMainSync {
                 assertFalse(RepairState.hasJournal())
-                RepairState.plans=listOf(snapshot.toString())
+                RepairState.plans=listOf(plan)
+                RepairState.skipFixed=false
                 RepairState.app.startForegroundService(Intent(RepairState.app,RepairRunner::class.java))
             }
             val deadline=SystemClock.uptimeMillis()+90000
@@ -68,6 +70,7 @@ class RepairReturnTest {
                 }
             }
             assertFalse(RepairState.hasJournal())
+            assertEquals(!stale, RepairState.history.plan(snapshot).channels.single().previouslyFixed)
             val after=(RepairState.data(service.inspect(pkg)) as JSONObject).getJSONArray("channels")
             val saved=(0 until after.length()).map {after.getJSONObject(it)}.single {it.getString("id")=="high_custom"}
             assertTrue(NotificationAccess.sameFields(original,NotificationAccess.decode(saved.getString("parcel"))))

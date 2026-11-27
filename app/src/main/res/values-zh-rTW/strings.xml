@@ -24,6 +24,9 @@
     <string name="off">關</string>
     <string name="skip">略過：已停用、群組被停用或舊版預設通知管道</string>
     <string name="skip_mipush">略過：MiPush 通知管道</string>
+    <string name="skip_fixed_option">略過已修復的通知管道</string>
+    <string name="rebuild_channel_history">開始修復時會清除所有已選應用程式的通知管道修復紀錄。</string>
+    <string name="skip_fixed">略過：先前已修復</string>
     <string name="channel_id">通知管道 ID：%1$s</string>
     <string name="sound_uri">原始音效：%1$s</string>
     <string name="silent">無</string>

@@ -45,9 +45,11 @@ internal class NotificationAccess(val context: Context) {
         ChannelPolicy.resolveVisibility(c.lockscreenVisibility),
         enabled(pkg,uid),groupBlocked(pkg,uid,c),c.id)
     fun inspect(pkg: String): JSONObject {
-        val uid=uid(pkg)
+        val install=context.packageManager.getPackageInfo(pkg,0)
+        val uid=checkNotNull(install.applicationInfo).uid
         val result=JSONObject().put("package",pkg).put("uid",uid).put("sdk",Build.VERSION.SDK_INT)
             .put("fingerprint",Build.FINGERPRINT).put("enabled",enabled(pkg,uid))
+            .put("firstInstallTime",install.firstInstallTime)
         val array=JSONArray()
         channels(pkg,uid).forEach { c ->
             val p=policy(pkg,uid,c)
@@ -75,7 +77,9 @@ internal class NotificationAccess(val context: Context) {
     }
     fun validateSnapshot(s: JSONObject) {
         if(s.getInt("sdk")!=Build.VERSION.SDK_INT || s.getString("fingerprint")!=Build.FINGERPRINT) fail(R.string.error_snapshot_build)
-        if(uid(s.getString("package"))!=s.getInt("uid")) fail(R.string.error_package_changed)
+        val install=context.packageManager.getPackageInfo(s.getString("package"),0)
+        if(install.applicationInfo?.uid!=s.getInt("uid") ||
+            (s.has("firstInstallTime") && install.firstInstallTime!=s.getLong("firstInstallTime"))) fail(R.string.error_package_changed)
     }
     fun original(s: JSONObject,id: String): NotificationChannel {
         validateSnapshot(s)

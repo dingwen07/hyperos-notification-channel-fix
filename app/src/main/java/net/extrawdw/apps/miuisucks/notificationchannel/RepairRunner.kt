@@ -3,7 +3,6 @@ package net.extrawdw.apps.miuisucks.notificationchannel
 import android.app.*
 import android.content.Intent
 import android.os.IBinder
-import org.json.JSONObject
 
 class RepairRunner : Service() {
     private var latestStartId=0
@@ -17,6 +16,7 @@ class RepairRunner : Service() {
         if (RepairState.running) return START_NOT_STICKY
         val bridge=RepairState.bridge ?: run { stopSelf(); return START_NOT_STICKY }
         val plans=RepairState.plans.toList()
+        val skipFixed = RepairState.skipFixed
         if(plans.isEmpty() || RepairState.recovery) { stopSelf(); return START_NOT_STICKY }
         val nm=getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(NotificationChannel("repair",getString(R.string.notification_channel),NotificationManager.IMPORTANCE_LOW))
@@ -33,22 +33,26 @@ class RepairRunner : Service() {
         RepairState.worker.execute {
             var completed=0
             try {
-                for(snapshot in plans) {
+                if (!skipFixed) {
+                    RepairState.history.clearPackages(plans.map { it.packageName }.toSet())
+                }
+                for(plan in plans) {
                     if(RepairState.stopRequested) break
-                    val s=JSONObject(snapshot)
-                    val channels=s.getJSONArray("channels")
-                    val eligible=(0 until channels.length()).map { channels.getJSONObject(it) }.filter { it.getBoolean("eligible") }
+                    val eligible = plan.channels.filter { it.skipReason(skipFixed) == null }
                     RepairState.post { RepairState.status=getString(R.string.app_gates) }
-                    RepairState.data(bridge.repairApp(snapshot))
-                    for(c in eligible) {
+                    RepairState.data(bridge.repairApp(plan.snapshot))
+                    for((index, channel) in eligible.withIndex()) {
                         if(RepairState.stopRequested) break
-                        val id=c.getString("id")
-                        RepairState.saveJournal(snapshot,id)
-                        RepairState.post { RepairState.status=getString(R.string.running_channel,c.getString("name"),eligible.indexOf(c)+1,eligible.size) }
+                        RepairState.history.forgetBeforeAttempt(channel)
+                        RepairState.saveJournal(plan.snapshot,channel.id)
+                        RepairState.post { RepairState.status=getString(R.string.running_channel,channel.data.getString("name"),index+1,eligible.size) }
                         try {
-                            val result=RepairState.data(bridge.repairChannel(snapshot,id))
+                            val result=RepairState.data(bridge.repairChannel(plan.snapshot,channel.id))
                             RepairState.clearJournal()
-                            if(result=="verified")completed++
+                            if(result=="verified") {
+                                RepairState.history.recordVerified(channel)
+                                completed++
+                            }
                         } catch(e: Exception) {
                             RepairState.channelFailure(e)
                             throw e
