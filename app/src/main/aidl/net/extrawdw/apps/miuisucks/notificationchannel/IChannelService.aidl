@@ -7,5 +7,7 @@ interface IChannelService {
     String restoreChannel(String snapshot, String channelId) = 4;
     void cancel() = 5;
     void returnToApp() = 6;
+    String targetProfiles(String packageName) = 7;
+    String inspectProfile(String packageName, int userId) = 8;
     void destroy() = 16777114;
 }

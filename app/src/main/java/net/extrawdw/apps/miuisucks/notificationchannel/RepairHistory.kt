@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import org.json.JSONArray
 import org.json.JSONObject
 
-internal class RepairPlan(val packageName: String, val snapshot: String, val channels: List<PlannedChannel>)
+internal class RepairPlan(val packageName: String, val snapshot: String, val channels: List<PlannedChannel>, val userId: Int = 0, val hostUserId: Int = 0)
 
 internal class PlannedChannel(
     val data: JSONObject,
@@ -32,14 +32,19 @@ internal class RepairHistory(private val preferences: SharedPreferences) {
         val channels = snapshot.getJSONArray("channels")
         val planned = List(channels.length()) { index ->
             val channel = channels.getJSONObject(index)
-            val key = JSONArray().put(pkg).put(channel.getString("id")).toString()
+            val id = channel.getString("id")
+            val keyParts = JSONArray().put(pkg).put(id)
+            // Keep existing owner records. A recreated profile receives a fresh Android user serial.
+            if (snapshot.optInt("userId") != 0) keyParts.put(snapshot.getLong("userSerial"))
+            val key = keyParts.toString()
             // The parcel includes Settings bookkeeping that can change during a successful repair.
             val signature = JSONArray().put(uid).put(installed).put(channel.getInt("importance"))
                 .put(channel.get("soundUri")).put(channel.getBoolean("vibrate"))
                 .put(channel.getInt("visibility")).toString()
-            PlannedChannel(channel, key, signature, preferences.getString(key, null) == signature)
+            val gatesMatch = channel.optBoolean("requiredGatesOpen", true)
+            PlannedChannel(channel, key, signature, gatesMatch && preferences.getString(key, null) == signature)
         }
-        return RepairPlan(pkg, snapshot.toString(), planned)
+        return RepairPlan(pkg, snapshot.toString(), planned, snapshot.optInt("userId"), snapshot.optInt("hostUserId"))
     }
 
     fun clearPackages(packages: Set<String>) {

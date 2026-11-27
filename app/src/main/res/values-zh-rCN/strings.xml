@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">HyperOS 通知渠道修复</string>
-    <string name="intro">按照 Android 保存的渠道设置，恢复 HyperOS 的悬浮通知、声音、振动和锁屏显示。</string>
+    <string name="intro">按照 Android 保存的通知渠道设置，恢复 HyperOS 的悬浮通知、声音、振动和锁屏显示。支持工作资料和应用双开。</string>
     <string name="connect">连接 Shizuku</string>
     <string name="scan">扫描应用</string>
     <string name="search">搜索应用名称或包名</string>
@@ -14,15 +14,19 @@
     <string name="not_connected">请先启动 Shizuku 并授权</string>
     <string name="working">正在处理，请保持手机解锁，暂时不要操作屏幕。</string>
     <string name="running_channel">正在修复：%1$s（%2$d/%3$d）</string>
-    <string name="completed">修复完成，已验证 %1$d 个渠道。</string>
-    <string name="stopped">已停止。已恢复当前渠道的 Android 设置；之前完成的 HyperOS 设置会保留。</string>
+    <plurals name="completed">
+        <item quantity="other">修复完成，已验证 %1$d 个通知渠道。</item>
+    </plurals>
+    <string name="stopped">已停止。已恢复当前通知渠道的 Android 设置；之前完成的 HyperOS 设置会保留。</string>
     <string name="failed">操作未完成：%1$s</string>
-    <string name="count">%1$d 个渠道</string>
+    <plurals name="count">
+        <item quantity="other">%1$d 个渠道</item>
+    </plurals>
     <string name="disabled">通知已关闭</string>
     <string name="channel_plan">重要性 %1$d · 悬浮 %2$s · 声音 %3$s · 振动 %4$s · 锁屏 %5$s</string>
     <string name="on">开</string>
     <string name="off">关</string>
-    <string name="skip">跳过：已禁用、分组被禁用或旧版默认渠道</string>
+    <string name="skip">跳过：已禁用、分组被禁用或旧版默认通知渠道</string>
     <string name="skip_mipush">跳过：MiPush 渠道</string>
     <string name="skip_fixed_option">跳过已修复的通知渠道</string>
     <string name="rebuild_channel_history">开始修复时会清空所有已选应用的通知渠道修复记录。</string>
@@ -30,23 +34,27 @@
     <string name="channel_id">渠道 ID：%1$s</string>
     <string name="sound_uri">原始声音：%1$s</string>
     <string name="silent">无</string>
-    <string name="confirm_title">执行此应用的修复计划？</string>
-    <string name="confirm_body">修复会自动打开并操作系统设置，开启所需的应用级通知开关，并始终为所选应用开启桌面角标。每个渠道的角标设置保持不变。被禁用的通知不会开启。自定义声音、重要性和振动设置会在操作后恢复。\n\n请保持手机解锁并停止其他屏幕操作。停止按钮位于常驻通知中。</string>
+    <string name="confirm_title">执行此修复计划？</string>
+    <string name="confirm_body">修复会自动打开并操作系统设置，开启所需的应用级通知开关，并始终为所选应用允许桌面角标。\n\n请保持手机解锁并停止其他屏幕操作。</string>
     <string name="dismiss">暂不执行</string>
-    <string name="silent_mode_body">手机处于静音模式。HyperOS 的声音选择器可能无法应用铃声。建议先关闭静音模式，也可以继续修复。</string>
+    <string name="silent_mode_body">手机处于静音模式。HyperOS 的声音选择器可能无法应用铃声。建议在开始前关闭静音模式。</string>
     <string name="start_anyway">仍然开始</string>
     <string name="notification_channel">修复进度</string>
     <string name="notification_text">正在自动操作系统设置；点击返回，或选择停止。</string>
-    <string name="pending_recovery">检测到中断的渠道操作，请先恢复 Android 设置。</string>
+    <string name="pending_recovery">检测到中断的通知渠道操作，请先恢复 Android 设置。</string>
     <string name="recovered">已恢复并验证 Android 设置，请重新扫描。</string>
     <string name="empty">未找到匹配的应用</string>
-    <string name="app_gates">应用级开关和桌面角标</string>
-    <string name="unsupported_locale">当前系统语言 %1$s 尚无 ROM 匹配字符串。支持的系统语言：英语、简体中文和繁体中文。</string>
+    <string name="app_gates">正在设置应用级开关和桌面角标…</string>
+    <string name="unsupported_locale">当前系统语言 %1$s 暂无匹配的 ROM 字符串。支持的系统语言：英语、简体中文和繁体中文。</string>
     <string name="select_all">选择显示的应用</string>
     <string name="clear_selection">清除选择</string>
-    <string name="selected_count">已选择 %1$d 个应用</string>
+    <plurals name="selected_count">
+        <item quantity="other">已选择 %1$d 个应用</item>
+    </plurals>
     <string name="details">技术详情</string>
     <string name="operation_error">操作失败，请查看技术详情，排除问题后重新扫描。</string>
-    <string name="system_language">支持如下系统语言：英语、简体中文、繁体中文</string>
+    <string name="system_language">支持的系统语言：英语、简体中文、繁体中文</string>
     <string name="notification_result">修复已结束，点击查看结果或恢复操作说明。</string>
+    <string name="work_plan">%1$s · 工作资料（%2$d）</string>
+    <string name="dual_app_plan">%1$s · 应用双开</string>
 </resources>

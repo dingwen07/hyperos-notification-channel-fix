@@ -13,6 +13,7 @@ import java.util.Locale
 internal class XiaomiLabels(app: Context, systemLocale: Locale=Resources.getSystem().configuration.locales[0]) {
     private val localized=app.createConfigurationContext(Configuration(app.resources.configuration).apply { setLocales(LocaleList(systemLocale)) })
     private val installed=mutableMapOf<String,String>()
+    private val settingsResources: Resources
     init {
         val selected=localized.getString(R.string.matching_locale_tag)
         if(selected=="unsupported" || !LocaleListCompat.matchesLanguageAndScript(Locale.forLanguageTag(selected),systemLocale))
@@ -21,6 +22,7 @@ internal class XiaomiLabels(app: Context, systemLocale: Locale=Resources.getSyst
         val vendor=settings.createConfigurationContext(Configuration(settings.resources.configuration).apply {
             setLocales(LocaleList(systemLocale))
         }).resources
+        settingsResources = vendor
         // This belongs to the installed Xiaomi Settings APK; its resource ID cannot be known at build time.
         @SuppressLint("DiscouragedApi")
         val xmlId=vendor.getIdentifier("miui_channel_notification_settings","xml","com.android.settings")
@@ -33,6 +35,12 @@ internal class XiaomiLabels(app: Context, systemLocale: Locale=Resources.getSyst
                 if(key!=null && title!=0) installed[key]=normalize(vendor.getString(title))
             }
         }
+    }
+    @SuppressLint("DiscouragedApi")
+    fun settingsString(name: String): String {
+        val id = settingsResources.getIdentifier(name, "string", "com.android.settings")
+        if (id == 0) fail(R.string.error_policy_format)
+        return normalize(settingsResources.getString(id))
     }
     fun preference(key: String,fallback: Int)=installed[key]?:text(fallback)
     fun text(id: Int)=normalize(localized.getString(id))

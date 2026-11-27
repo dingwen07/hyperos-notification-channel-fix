@@ -61,7 +61,7 @@ object RepairState {
         status = app.getString(if (recovery) R.string.pending_recovery else R.string.not_connected)
         args = Shizuku.UserServiceArgs(ComponentName(app, ChannelService::class.java))
             .daemon(false).processNameSuffix("repair_shell").debuggable(BuildConfig.DEBUG)
-            .version(BuildConfig.VERSION_CODE).tag("channel_repair")
+            .version(BuildConfig.VERSION_CODE).tag("channel_repair_"+application.applicationInfo.uid)
         Shizuku.addBinderReceivedListenerSticky { main.post { if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) connect() } }
         Shizuku.addBinderDeadListener { main.post { disconnected() } }
         Shizuku.addRequestPermissionResultListener { _, result ->
@@ -93,7 +93,11 @@ object RepairState {
     fun error(e: Exception) { post {
         detail=e.message.orEmpty()
         errorRes=(e as? RemoteOperationException)?.messageId
-        status=(e as? RemoteOperationException)?.userMessage?:app.getString(R.string.operation_error)
+        status=when(e) {
+            is RemoteOperationException -> e.userMessage
+            is RepairFailure -> app.getString(e.messageId,*e.arguments)
+            else -> app.getString(R.string.operation_error)
+        }
     } }
     private fun task(work: (IChannelService) -> Unit) {
         if (busy || running) return
@@ -108,13 +112,19 @@ object RepairState {
         val array = data(service.listApps()) as JSONArray
         val found = (0 until array.length()).map { array.getJSONObject(it) }.map {
             AppEntry(it.getString("package"),it.getString("name"),it.getInt("count"),it.getBoolean("system"),it.getBoolean("enabled"))
+        }.groupBy { it.pkg }.values.map { copies ->
+            copies.first().copy(count = copies.sumOf { it.count }, enabled = copies.any { it.enabled })
         }.sortedWith(compareBy<AppEntry> { !it.pkg.endsWith(".testapp") }.thenBy { it.name.lowercase() })
         post { apps=found; plans=emptyList(); status=app.getString(R.string.ready) }
     }
     fun preview() {
         val packages=selected.toList()
         task { service ->
-            val inspected=packages.map { history.plan(data(service.inspect(it)) as JSONObject) }
+            val inspected = packages.flatMap { pkg ->
+                val users = data(service.targetProfiles(pkg)) as JSONArray
+                if (users.length() == 0) fail(R.string.error_package_changed)
+                List(users.length()) { history.plan(data(service.inspectProfile(pkg, users.getInt(it))) as JSONObject) }
+            }
             post { skipFixed=true; plans=inspected }
         }
     }

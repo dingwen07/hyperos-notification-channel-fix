@@ -8,11 +8,13 @@ The interface uses Kotlin, Jetpack Compose, and Material 3. The UI and Settings 
 
 ## Use
 
-1. Start Shizuku in ADB mode, open Channel Repair, and grant Shizuku access.
+1. Open Channel Repair in the Android user you want to repair. Start Shizuku in ADB mode and grant access. A regular secondary user needs Shizuku Manager installed and authorized in that user.
 2. Set Xiaomi **Lock-screen notifications → Display rules → Show notification content** before repair. Other global choices remove channel-level options needed by the automation. The app checks both underlying secure settings before preview and again before each app/channel operation. It stops with a shortcut to Xiaomi's settings when the prerequisite is unmet; it never changes global privacy itself. You can restore your preferred global privacy choice afterward.
-3. Scan apps, select the apps to repair, and review their channel plans. **Skip previously fixed notification channels** is on for each new plan. The app remembers each verified channel on this device, even if the run later stops. Reinstalling the target app or changing a channel’s Android importance, sound URI, vibration target or lock-screen visibility makes it eligible again. Starting a repair with skipping off clears the entire saved channel history for every selected app, including channels that no longer exist. Each newly verified channel is saved as the run proceeds. App-level switches and badges are still processed for each selected app.
+3. Select each package once. The scan and plan include all its channels in the foreground full user and its available, unlocked Work and Dual Apps profiles. To repair another full user, switch to that user and open its copy of Channel Repair. **Skip previously fixed notification channels** is on for each new plan. The app remembers each verified channel separately for each Android user, even if the run later stops. Reinstalling the target app or changing a channel’s Android importance, sound URI, vibration target or lock-screen visibility makes it eligible again. Starting a repair with skipping off clears the entire saved channel history for every selected app, including channels that no longer exist. Each newly verified channel is saved as the run proceeds. App-level switches and badges are still processed for each selected app.
 4. Start repair and allow the progress notification. Keep the phone unlocked and avoid interacting with Settings while it runs.
 5. The app returns automatically after completion, an error, or Stop, showing the result after channel cleanup. If Shizuku disconnects and Android blocks the return, a result notification remains available to reopen the app. The ongoing notification also provides a Stop action.
+
+New Android users may see a first-use agreement when they open Xiaomi’s sound picker. Complete it in that user and retry the repair.
 
 Xiaomi's sound picker may refuse to apply a sound while silent mode is enabled without Bluetooth headphones. When the phone is in silent or vibrate mode, the repair confirmation includes a highlighted warning and a **Start anyway** button. It checks only ringer mode, without probing Bluetooth audio. Disable silent mode before a repair that needs sound changes. The app does not change volume, silent mode, Do Not Disturb, or global lock-screen privacy.
 
@@ -37,9 +39,10 @@ Every preview card shows its full, selectable channel ID. All skipped channels a
 
 - `NotificationAccess`: shell-only Binder access to saved channels. The full channel parcel is captured before work; restoration updates only importance, sound/audio attributes, vibration, and visibility on the current channel object. Other fields are retained.
 - `SettingsAutomation`: package-scoped accessibility-node actions through Shizuku `UiAutomation`; no separate accessibility service or fixed-coordinate automation. Preference labels come from the installed Settings XML where available. Remaining labels are localized in `xiaomi_strings.xml`.
-- `XiaomiPolicy`: reads effective OEM gates from SystemUI diagnostics. The complete system dump is never saved. A successful Android field update alone is insufficient to report repair success.
+- HyperOS 4 resolves these Xiaomi switches in the foreground full user. Owner, Work and Dual Apps copies can therefore share a switch for the same package and channel ID. Android channel fields and recovery snapshots use the target installation’s full UID.
+- In user 0, `XiaomiPolicy` reads the owner SystemUI diagnostic over Binder and rechecks required gates at preview. Other foreground users verify the controls on their own Xiaomi Settings channel page after restoration. Their plans reuse the saved verification until the Android channel signature changes or a full repair is requested.
 - `RepairRunner`: finite foreground operation, cancellation, and a private atomic recovery journal. Stale previews are rejected. Known failures that made no change or successfully restored the channel clear the journal; unknown Binder outcomes retain it.
-- Lock-screen and sound repair decisions use the saved Android fields and effective Xiaomi policy, without interpreting Settings summary text. Their selectors are opened only when Xiaomi blocks a required permission. After a sound change, Xiaomi returns to the channel page automatically; the original URI is restored through Binder and verified.
+- Lock-screen and sound repair decisions use the saved Android fields and the foreground user’s effective Xiaomi policy. Their selectors are opened only when Xiaomi blocks a required permission. After a sound change, Xiaomi returns to the channel page automatically; the original URI is restored through Binder and verified.
 
 The Settings UI and privileged Binder update may mark channel fields as user-modified. The app preserves their values, but does not reset Android's internal user-lock bookkeeping.
 
@@ -57,7 +60,7 @@ Compile SDK is Android 17.1 (37.1); target SDK is 37 because Android target SDK 
 
 After changing AIDL or Shizuku shell service code, use a clean build and a full Package Manager reinstall so the shell process loads the current classes.
 
-The `testapp` target creates 12 disposable channels covering importance 0–4, custom/default/no sound, vibration, channel badges, and lock-screen privacy. Launch it after clearing its data to recreate the channels. Android ignores app-created lock-screen overrides; the **debug-only** `FixtureShell` entry point seeds PRIVATE and SECRET through shell Binder calls. It accepts only its fixed `.testapp` package. HyperOS forbids ordinary apps from creating `mipush|` channels, so MiPush coverage uses policy tests, a direct service skip test, and a sample preview card.
+The `testapp` target creates 13 disposable channels covering importance 0–4, custom/default/no sound, vibration, channel badges, lock-screen privacy, and conflicting alert requirements across profiles. Launch it after clearing its data to recreate the channels. Android ignores app-created lock-screen overrides; the **debug-only** `FixtureShell` entry point seeds PRIVATE and SECRET through shell Binder calls. It accepts only its fixed `.testapp` package. HyperOS forbids ordinary apps from creating `mipush|` channels, so MiPush coverage uses policy tests, a direct service skip test, and a sample preview card.
 
 After installing both apps and the test APK, grant Shizuku to the main app and notification permission to the fixture. For an explicitly selected test device:
 
@@ -66,5 +69,7 @@ adb -s DEVICE push app/build/outputs/apk/debug/app-debug.apk /data/local/tmp/cha
 adb -s DEVICE shell 'CLASSPATH=/data/local/tmp/channel-repair-debug.apk app_process /system/bin net.extrawdw.apps.miuisucks.notificationchannel.FixtureShell seed-privacy'
 adb -s DEVICE shell am instrument -w -e repairFixture true -e class net.extrawdw.apps.miuisucks.notificationchannel.FixtureRepairTest net.extrawdw.apps.miuisucks.notificationchannel.test/androidx.test.runner.AndroidJUnitRunner
 ```
+
+To test multiple copies, install and launch the fixture in each participating profile, then add `-e fixtureUsers 0,16,999` with the actual expected IDs. From a regular user, pass its ID to both `am instrument --user` and `fixtureUsers`.
 
 Device repair tests are opt-in and restricted to the fixture. They check restored Android alert fields, unchanged badges/lights/DND/group/conversation settings, effective required Xiaomi permissions, skipped-channel guards, and rejection of stale snapshots. `RepairReturnTest` checks return to the app with the correct result after success and failure. Unit tests cover channel policy and OEM policy parsing.

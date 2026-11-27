@@ -8,6 +8,37 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class RepairHistoryTest {
+    @Test fun remembersEachUserSeparatelyAndRejectsARecreatedProfileOrClosedGate() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val file = "profile_repair_history_test"
+        try {
+            val history = RepairHistory(context.getSharedPreferences(file, Context.MODE_PRIVATE))
+            fun snapshot(id: Int, serial: Long) = JSONObject().put("package","test.app")
+                .put("userId",id).put("userSerial",serial).put("uid",id * 100000 + 10001)
+                .put("channels",JSONArray().put(JSONObject().put("id","shared").put("importance",4)
+                    .put("soundUri",JSONObject.NULL).put("vibrate",true).put("visibility",-1000)))
+            val owner = snapshot(0,0)
+            val work = snapshot(16,50)
+            val clone = snapshot(999,20)
+            fun current(s: JSONObject) = history.plan(s).channels.single()
+            history.recordVerified(current(owner))
+            assertFalse(current(work).previouslyFixed)
+            history.recordVerified(current(work))
+            assertFalse(current(clone).previouslyFixed)
+            history.recordVerified(current(clone))
+            assertTrue(listOf(owner,work,clone).all { current(it).previouslyFixed })
+            assertFalse(current(snapshot(16,51)).previouslyFixed)
+            owner.getJSONArray("channels").getJSONObject(0).put("requiredGatesOpen",false)
+            assertFalse(current(owner).previouslyFixed)
+            assertTrue(current(work).previouslyFixed)
+            history.clearPackages(setOf("test.app"))
+            assertFalse(current(work).previouslyFixed)
+            assertFalse(current(clone).previouslyFixed)
+        } finally {
+            context.deleteSharedPreferences(file)
+        }
+    }
+
     @Test fun fullRepairClearsSelectedPackagesAndRebuildsHistoryFromVerifiedChannels() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val preferences = context.getSharedPreferences("full_repair_history_test", Context.MODE_PRIVATE)

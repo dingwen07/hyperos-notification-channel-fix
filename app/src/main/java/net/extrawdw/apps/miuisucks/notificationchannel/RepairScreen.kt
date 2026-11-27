@@ -25,6 +25,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.disabled
@@ -185,12 +186,18 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
                     }
                     plans.forEach { plan ->
                         val pkg = plan.packageName
-                        item(key = "package:$pkg", span = { GridItemSpan(maxLineSpan) }) {
-                            Text(pkg, style = MaterialTheme.typography.titleMedium)
+                        val key = if (plan.userId == 0) pkg else "${plan.userId}:$pkg"
+                        item(key = "package:$key", span = { GridItemSpan(maxLineSpan) }) {
+                            val heading = when (plan.userId) {
+                                plan.hostUserId -> pkg
+                                999 -> stringResource(R.string.dual_app_plan, pkg)
+                                else -> stringResource(R.string.work_plan, pkg, plan.userId)
+                            }
+                            Text(heading, style = MaterialTheme.typography.titleMedium)
                         }
                         items(
                             items = plan.channels,
-                            key = { "channel:$pkg:${it.id}" },
+                            key = { "channel:$key:${it.id}" },
                             contentType = { "channel" },
                         ) { channel -> ChannelCard(channel, state.skipFixed) }
                     }
@@ -227,7 +234,7 @@ internal fun RepairContent(state: RepairUiState, actions: RepairActions = Repair
                                 onClick = { focusManager.clearFocus(); actions.preview() },
                                 enabled = state.selected.isNotEmpty() && !state.working && !state.recovery && state.connected,
                             ) { Text(stringResource(R.string.preview)) }
-                            Text(stringResource(R.string.selected_count, state.selected.size), Modifier.align(Alignment.CenterVertically))
+                            Text(pluralStringResource(R.plurals.selected_count, state.selected.size, state.selected.size), Modifier.align(Alignment.CenterVertically))
                         }
                     }
                     items(visibleApps, key = { "app:${it.pkg}" }, contentType = { "app" }) { app ->
@@ -301,7 +308,7 @@ private fun AppCard(app: AppEntry, selected: Boolean, enabled: Boolean, onSelect
                 Text(app.name, style = MaterialTheme.typography.titleMedium)
                 Text(app.pkg, style = MaterialTheme.typography.bodySmall)
                 Text(
-                    if (app.enabled) stringResource(R.string.count, app.count) else stringResource(R.string.disabled),
+                    if (app.enabled) pluralStringResource(R.plurals.count, app.count, app.count) else stringResource(R.string.disabled),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }

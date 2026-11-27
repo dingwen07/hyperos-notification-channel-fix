@@ -26,15 +26,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val manager=getSystemService(NotificationManager::class.java)
+        val users = getSystemService(android.os.UserManager::class.java)
+        val suffix = if (users.isSystemUser) "" else " (" + users.getSerialNumberForUser(android.os.Process.myUserHandle()) + ")"
         val audio=AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
         val custom=Uri.parse("android.resource://$packageName/raw/custom_chime")
         val default=Settings.System.DEFAULT_NOTIFICATION_URI
         fun channel(id: String,label: Int,importance: Int,sound: Uri?,vibration: Boolean,visibility: Int,badge: Boolean=true)=
-            NotificationChannel(id,getString(label),importance).apply {
+            NotificationChannel(id,getString(label) + suffix,importance).apply {
                 setSound(sound,audio);setShowBadge(badge);lockscreenVisibility=visibility
                 if(vibration)vibrationPattern=longArrayOf(0,80,70,160)
                 enableVibration(vibration)
             }
+        val managed = users.isManagedProfile
         val channels=listOf(
             channel("high_custom",R.string.high_custom,4,custom,true,1),
             channel("high_default",R.string.high_default,4,default,false,1),
@@ -47,7 +50,8 @@ class MainActivity : ComponentActivity() {
             channel("secret",R.string.secret,4,custom,true,-1),
             channel("private",R.string.private_channel,4,default,true,0),
             channel("unspecified",R.string.unspecified,3,default,false,-1000),
-            channel("no_badge",R.string.no_badge,4,default,false,1,false))
+            channel("no_badge",R.string.no_badge,4,default,false,1,false),
+            channel("profile_alerts", R.string.profile_alerts, if (managed) 2 else 4, null, !managed, 1))
         manager.createNotificationChannels(channels)
         if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS),1)

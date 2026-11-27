@@ -1,6 +1,6 @@
 <resources>
     <string name="error_command_timeout">系統操作逾時。</string>
-    <string name="error_owner_user">目前僅支援 Android 主要使用者。</string>
+    <string name="error_foreground_user">請在目前的前景 Android 使用者中執行修復。切換回原使用者後即可繼續。</string>
     <string name="error_channel_missing">通知管道已不存在，請重新掃描。</string>
     <string name="error_package_changed">應用程式已重新安裝或發生變更，請重新掃描。</string>
     <string name="error_snapshot_size">此應用程式的通知管道過多，超出單次修復範圍。</string>
@@ -29,4 +29,5 @@
     <string name="error_global_lockscreen">修復前，請在 Xiaomi「鎖定畫面通知 → 顯示規則」中選擇「顯示通知內容」。其他全域選項會隱藏修復所需的通知管道選項。修復後可改回你偏好的全域隱私設定。</string>
     <string name="error_global_lockscreen_read">無法讀取全域鎖定畫面通知設定，修復已停止。</string>
     <string name="open_global_lockscreen">開啟 Xiaomi 鎖定畫面通知設定</string>
+    <string name="error_profile_unavailable">此設定檔目前無法使用。請解鎖後重新掃描。</string>
 </resources>

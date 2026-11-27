@@ -13,7 +13,7 @@ internal class XiaomiPolicy {
     }
     companion object {
         fun read(pkg: String): XiaomiPolicy {
-            val dump=Command.run("/system/bin/dumpsys","activity","service","com.android.systemui/.SystemUIService")
+            val dump=ShellFramework.systemUiDump()
             return parse(pkg,dump)
         }
         fun parse(pkg: String,dump: String): XiaomiPolicy {

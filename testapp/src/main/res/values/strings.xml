@@ -16,4 +16,5 @@
     <string name="private_channel">高重要性 · 锁屏隐藏内容</string>
     <string name="unspecified">默认重要性 · 跟随全局锁屏设置</string>
     <string name="no_badge">高重要性 · 无角标</string>
+    <string name="profile_alerts">跨用户测试 · 工作资料静默</string>
 </resources>

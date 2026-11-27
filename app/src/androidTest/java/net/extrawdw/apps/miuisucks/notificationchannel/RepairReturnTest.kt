@@ -66,7 +66,7 @@ class RepairReturnTest {
                     assertEquals(RepairState.app.getString(R.string.error_channel_changed),RepairState.status)
                 } else {
                     assertNull(RepairState.errorRes)
-                    assertEquals(RepairState.app.getString(R.string.completed,1),RepairState.status)
+                    assertEquals(RepairState.app.resources.getQuantityString(R.plurals.completed,1,1),RepairState.status)
                 }
             }
             assertFalse(RepairState.hasJournal())

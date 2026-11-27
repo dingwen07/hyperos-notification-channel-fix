@@ -40,7 +40,7 @@ class RepairRunner : Service() {
                     if(RepairState.stopRequested) break
                     val eligible = plan.channels.filter { it.skipReason(skipFixed) == null }
                     RepairState.post { RepairState.status=getString(R.string.app_gates) }
-                    RepairState.data(bridge.repairApp(plan.snapshot))
+                    if (RepairState.data(bridge.repairApp(plan.snapshot)) == "skipped") continue
                     for((index, channel) in eligible.withIndex()) {
                         if(RepairState.stopRequested) break
                         RepairState.history.forgetBeforeAttempt(channel)
@@ -60,7 +60,7 @@ class RepairRunner : Service() {
                     }
                 }
                 val count=completed
-                RepairState.post { RepairState.status=if(RepairState.stopRequested)getString(R.string.stopped) else getString(R.string.completed,count) }
+                RepairState.post { RepairState.status=if(RepairState.stopRequested)getString(R.string.stopped) else resources.getQuantityString(R.plurals.completed,count,count) }
             } catch(e: Exception) {
                 if(RepairState.stopRequested) RepairState.post {
                     RepairState.status=getString(if(RepairState.hasJournal())R.string.pending_recovery else R.string.stopped)

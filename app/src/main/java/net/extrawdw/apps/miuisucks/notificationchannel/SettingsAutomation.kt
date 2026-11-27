@@ -1,12 +1,14 @@
 package net.extrawdw.apps.miuisucks.notificationchannel
 
 import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import android.os.*
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityNodeInfo
 
 /** Bounded, package-scoped node actions. No fixed coordinates or blind taps. */
-internal class SettingsAutomation(context: Context,private val cancelled: () -> Boolean) : AutoCloseable {
+internal class SettingsAutomation(private val context: Context,private val hostId: Int,private val cancelled: () -> Boolean) : AutoCloseable {
     val labels=XiaomiLabels(context)
     private val session=ShellUiAutomation()
     private val ui=session.ui
@@ -29,13 +31,18 @@ internal class SettingsAutomation(context: Context,private val cancelled: () -> 
         }
         fail(R.string.error_page_timeout,pkg)
     }
-    fun open(pkg: String,id: String?,title: String) {
+    fun open(pkg: String,id: String?,title: String,uid: Int,userId: Int) {
         checkCancelled()
-        val args=mutableListOf("/system/bin/am","start","-W","--user","0","-f","0x10008000","-a",
-            if(id==null)"android.settings.APP_NOTIFICATION_SETTINGS" else "android.settings.CHANNEL_NOTIFICATION_SETTINGS",
-            "--es","android.provider.extra.APP_PACKAGE",pkg)
-        if(id!=null) args+=listOf("-n","com.android.settings/.notification.app.ChannelPanelActivity","--es","android.provider.extra.CHANNEL_ID",id)
-        Command.run(*args.toTypedArray())
+        // The foreground full user owns the effective Xiaomi gates. app_uid selects the Android copy.
+        val intent = Intent(if (id == null) Settings.ACTION_APP_NOTIFICATION_SETTINGS else Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+            .setPackage("com.android.settings")
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            .putExtra(Settings.EXTRA_APP_PACKAGE, pkg)
+            .putExtra("app_uid", uid)
+        if (userId == 999) intent.putExtra("userId", userId)
+        if (id != null) intent.setClassName("com.android.settings", "com.android.settings.notification.app.ChannelPanelActivity")
+            .putExtra(Settings.EXTRA_CHANNEL_ID, id)
+        ShellFramework.startActivity(intent, hostId)
         awaitPackage("com.android.settings")
         settingsTitle=title
         awaitSettingsTitle()
@@ -108,6 +115,45 @@ internal class SettingsAutomation(context: Context,private val cancelled: () -> 
             // A partially checked node does not satisfy either binary setting.
             checked==if(desired)AccessibilityNodeInfo.CHECKED_STATE_TRUE else AccessibilityNodeInfo.CHECKED_STATE_FALSE
         } else isChecked==desired
+    // The secondary user's Settings queries its own SystemUI provider when this page opens.
+    fun checked(label: String): Boolean =
+        checkable(clickable(title(label)))?.matchesCheckedState(true) ?: fail(R.string.error_not_switch,label)
+
+    private fun rowValue(label: String, viewId: String): String {
+        val row = clickable(title(label))
+        repeat(10) {
+            val values = row.findAccessibilityNodeInfosByViewId(viewId).filter { it.isVisibleToUser }
+            if (values.size == 1) {
+                val text = XiaomiLabels.normalize(values.single().text)
+                if (text.isNotBlank()) return text
+            }
+            SystemClock.sleep(100)
+            row.refresh()
+        }
+        fail(R.string.error_policy_format)
+    }
+
+    fun lockscreenAllowed(): Boolean {
+        val value = rowValue(labels.preference("visibility_override", R.string.visibility_override), "com.android.settings:id/text_right")
+        return when (value) {
+            labels.settingsString("lock_screen_notifications_summary_show"),
+            labels.settingsString("lock_screen_notifications_summary_hide") -> true
+            labels.settingsString("lock_screen_notifications_summary_disable") -> false
+            else -> fail(R.string.error_policy_format)
+        }
+    }
+
+    @android.annotation.SuppressLint("PrivateApi") // Use the same vendor formatter as the installed Settings.
+    fun soundAllowed(): Boolean {
+        val title = rowValue(labels.preference("ringtone", R.string.ringtone), "android:id/summary")
+        // MiuiNotificationSoundPreference renders ExtraRingtone.getRingtoneTitle(null)
+        // when the OEM gate is closed, independently of the Android channel's saved URI.
+        val silent = Class.forName("android.media.ExtraRingtone").getMethod("getRingtoneTitle",
+            Context::class.java, android.net.Uri::class.java, Boolean::class.javaPrimitiveType)
+            .invoke(null, context, null, false) as String
+        return title != XiaomiLabels.normalize(silent)
+    }
+
     fun toggle(label: String,desired: Boolean) {
         val row=clickable(title(label));val box=checkable(row)?:fail(R.string.error_not_switch,label)
         if(box.matchesCheckedState(desired))return

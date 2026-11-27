@@ -13,11 +13,15 @@ import org.json.JSONObject
 @SuppressLint("PrivateApi")
 internal class NotificationAccess(val context: Context) {
     init { check(android.os.Process.myUid() in setOf(0,2000)) { "Shizuku shell or root required" } }
+    private val supported = RepairProfiles(context)
+    val hostId get() = supported.hostId
+    fun requireForeground() = supported.requireForeground()
+    val profiles by lazy { supported.available() }
+    fun profile(id: Int) = profiles.singleOrNull { it.id == id } ?: fail(R.string.error_profile_unavailable)
     private val type=Class.forName("android.app.INotificationManager")
     private val service: Any
     init {
-        if(ActivityManager::class.java.getMethod("getCurrentUser").invoke(null)!=0) fail(R.string.error_owner_user)
-        val binder=Class.forName("android.os.ServiceManager").getMethod("getService",String::class.java).invoke(null,"notification")
+        val binder=ShellFramework.binder("notification")
         service=Class.forName("android.app.INotificationManager\$Stub").getMethod("asInterface",IBinder::class.java).invoke(null,binder)!!
     }
     private fun call(name: String,vararg args: Any?): Any? {
@@ -25,18 +29,13 @@ internal class NotificationAccess(val context: Context) {
         return method.invoke(service,*args)
     }
     fun enabled(pkg: String,uid: Int)=call("areNotificationsEnabledForPackage",pkg,uid) as Boolean
-    fun uid(pkg: String)=context.packageManager.getApplicationInfo(pkg,0).uid
     @Suppress("UNCHECKED_CAST")
     fun channels(pkg: String,uid: Int): List<NotificationChannel> {
         val slice=call("getNotificationChannelsForPackage",pkg,uid,false)!!
         return slice.javaClass.getMethod("getList").invoke(slice) as List<NotificationChannel>
     }
-    fun channel(pkg: String,id: String): NotificationChannel =
-        call("getNotificationChannel","com.android.shell",0,pkg,id) as? NotificationChannel ?: fail(R.string.error_channel_missing)
-    private fun update(pkg: String,uid: Int,c: NotificationChannel) {
-        if(uid(pkg)!=uid) fail(R.string.error_package_changed)
-        call("updateNotificationChannelForPackage",pkg,uid,c)
-    }
+    fun channel(pkg: String,id: String,userId: Int): NotificationChannel =
+        call("getNotificationChannel","com.android.shell",userId,pkg,id) as? NotificationChannel ?: fail(R.string.error_channel_missing)
     private fun groupBlocked(pkg: String,uid: Int,c: NotificationChannel): Boolean {
         val group=c.group ?: return false
         return (call("getNotificationChannelGroupForPackage",group,pkg,uid) as? NotificationChannelGroup)?.isBlocked==true
@@ -44,12 +43,13 @@ internal class NotificationAccess(val context: Context) {
     fun policy(pkg: String,uid: Int,c: NotificationChannel)=ChannelPolicy(c.importance,c.sound!=null,c.shouldVibrate(),
         ChannelPolicy.resolveVisibility(c.lockscreenVisibility),
         enabled(pkg,uid),groupBlocked(pkg,uid,c),c.id)
-    fun inspect(pkg: String): JSONObject {
-        val install=context.packageManager.getPackageInfo(pkg,0)
+    fun inspect(pkg: String, userId: Int = hostId): JSONObject {
+        val profile = profile(userId)
+        val install=profile.context.packageManager.getPackageInfo(pkg,0)
         val uid=checkNotNull(install.applicationInfo).uid
         val result=JSONObject().put("package",pkg).put("uid",uid).put("sdk",Build.VERSION.SDK_INT)
             .put("fingerprint",Build.FINGERPRINT).put("enabled",enabled(pkg,uid))
-            .put("firstInstallTime",install.firstInstallTime)
+            .put("firstInstallTime",install.firstInstallTime).put("userId",userId).put("userSerial",profile.serial).put("hostUserId",hostId)
         val array=JSONArray()
         channels(pkg,uid).forEach { c ->
             val p=policy(pkg,uid,c)
@@ -67,17 +67,46 @@ internal class NotificationAccess(val context: Context) {
     @SuppressLint("QueryPermissionsNeeded")
     fun apps(): JSONArray {
         val result=JSONArray()
-        context.packageManager.getInstalledApplications(0).forEach { app ->
-            if(app.packageName==BuildConfig.APPLICATION_ID) return@forEach
-            val count=call("getNumNotificationChannelsForPackage",app.packageName,app.uid,false) as Int
-            if(count>0) result.put(JSONObject().put("package",app.packageName).put("name",app.loadLabel(context.packageManager))
-                .put("count",count).put("system",app.flags and ApplicationInfo.FLAG_SYSTEM!=0).put("enabled",enabled(app.packageName,app.uid)))
+        for (profile in profiles) {
+            val pm = profile.context.packageManager
+            pm.getInstalledApplications(0).forEach { app ->
+                if(app.packageName==BuildConfig.APPLICATION_ID) return@forEach
+                val count=call("getNumNotificationChannelsForPackage",app.packageName,app.uid,false) as Int
+                if(count>0) result.put(JSONObject().put("package",app.packageName).put("name",app.loadLabel(pm))
+                    .put("count",count).put("system",app.flags and ApplicationInfo.FLAG_SYSTEM!=0).put("enabled",enabled(app.packageName,app.uid)))
+            }
         }
         return result
     }
+    fun targetIds(pkg: String): JSONArray {
+        val ids = JSONArray()
+        for (profile in profiles) {
+            val pm = profile.context.packageManager
+            val info = try { pm.getApplicationInfo(pkg, 0) }
+                catch (_: android.content.pm.PackageManager.NameNotFoundException) { continue }
+            if (call("getNumNotificationChannelsForPackage", pkg, info.uid, false) as Int > 0) ids.put(profile.id)
+        }
+        return ids
+    }
+    fun peerAlertNeeds(pkg: String, id: String, userId: Int, current: ChannelPolicy): Pair<Boolean, Boolean> {
+        if (current.popup && current.vibrate) return false to false
+        val policies = profiles.filter { it.id != userId }.mapNotNull { peer ->
+            val uid = try { peer.context.packageManager.getApplicationInfo(pkg,0).uid }
+                catch (_: android.content.pm.PackageManager.NameNotFoundException) { return@mapNotNull null }
+            val channel = call("getNotificationChannel","com.android.shell",peer.id,pkg,id) as? NotificationChannel
+                ?: return@mapNotNull null
+            policy(pkg,uid,channel)
+        }
+        return policies.any { it.popup } to policies.any { it.vibrate }
+    }
     fun validateSnapshot(s: JSONObject) {
         if(s.getInt("sdk")!=Build.VERSION.SDK_INT || s.getString("fingerprint")!=Build.FINGERPRINT) fail(R.string.error_snapshot_build)
-        val install=context.packageManager.getPackageInfo(s.getString("package"),0)
+        requireForeground()
+        if (s.optInt("hostUserId", 0) != hostId) fail(R.string.error_foreground_user)
+        val target = profile(s.optInt("userId", 0))
+        if (target.id != 0 && !s.has("userSerial")) fail(R.string.error_package_changed)
+        if (s.has("userSerial") && s.getLong("userSerial") != target.serial) fail(R.string.error_package_changed)
+        val install=target.context.packageManager.getPackageInfo(s.getString("package"),0)
         if(install.applicationInfo?.uid!=s.getInt("uid") ||
             (s.has("firstInstallTime") && install.firstInstallTime!=s.getLong("firstInstallTime"))) fail(R.string.error_package_changed)
     }
@@ -94,15 +123,17 @@ internal class NotificationAccess(val context: Context) {
     fun restore(s: JSONObject,id: String) {
         val original=original(s,id)
         val pkg=s.getString("package")
-        val current=channel(pkg,id)
+        val userId=s.optInt("userId",0)
+        val current=channel(pkg,id,userId)
         current.importance=original.importance
         current.setSound(original.sound,original.audioAttributes)
         current.vibrationPattern=original.vibrationPattern
         if(Build.VERSION.SDK_INT>=35) current.vibrationEffect=original.vibrationEffect
         current.enableVibration(original.shouldVibrate())
         current.lockscreenVisibility=original.lockscreenVisibility
-        update(pkg,s.getInt("uid"),current)
-        if(!sameFields(original,channel(pkg,id))) fail(R.string.error_restore)
+        validateSnapshot(s)
+        call("updateNotificationChannelForPackage",pkg,s.getInt("uid"),current)
+        if(!sameFields(original,channel(pkg,id,userId))) fail(R.string.error_restore)
     }
     companion object {
         fun encode(c: NotificationChannel): String {

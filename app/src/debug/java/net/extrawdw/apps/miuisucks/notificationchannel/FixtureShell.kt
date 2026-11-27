@@ -12,12 +12,16 @@ object FixtureShell {
         check(android.os.Process.myUid()==2000)
         check(args.contentEquals(arrayOf("seed-privacy")))
         val pkg=BuildConfig.APPLICATION_ID+".testapp"
-        val binder=Class.forName("android.os.ServiceManager").getMethod("getService",String::class.java).invoke(null,"notification")
+        val binder=ShellFramework.binder("notification")
         val service=Class.forName("android.app.INotificationManager\$Stub").getMethod("asInterface",IBinder::class.java).invoke(null,binder)
         val type=Class.forName("android.app.INotificationManager")
         val get=type.methods.single {it.name=="getNotificationChannel"&&it.parameterCount==4}
         val update=type.methods.single {it.name=="updateNotificationChannelForPackage"&&it.parameterCount==3}
-        val uid=Regex("uid:(\\d+)").find(Command.run("/system/bin/pm","list","packages","-U",pkg))!!.groupValues[1].toInt()
+        val pm = Class.forName("android.app.AppGlobals").getMethod("getPackageManager").invoke(null)
+        val getUid = Class.forName("android.content.pm.IPackageManager").methods.single { it.name == "getPackageUid" }
+        val flags: Any = if (getUid.parameterTypes[1] == Long::class.javaPrimitiveType) 0L else 0
+        val uid = getUid.invoke(pm, pkg, flags, 0) as Int
+        check(uid >= 0) { "Fixture is missing from the owner user" }
         for((id,visibility) in mapOf("high_custom" to 1,"private" to 0,"secret" to -1,"unspecified" to -1000)) {
             val channel=get.invoke(service,"com.android.shell",0,pkg,id) as NotificationChannel
             channel.lockscreenVisibility=visibility
